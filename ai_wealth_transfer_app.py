@@ -1,8 +1,9 @@
 import streamlit as st
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 
-def calculate_estate_tax(total_assets, spouse_deduction, adult_children, other_dependents, disabled_people):
+def calculate_estate_tax(total_assets, spouse_deduction, adult_children, other_dependents, disabled_people, parents):
     """
     計算台灣 2025 年遺產稅負，確保課稅遺產淨額為整數
     """
@@ -36,62 +37,55 @@ st.header("遺產稅試算工具")
 region = st.selectbox("選擇適用地區", ["台灣（2025年起）"], index=0)
 
 # 用戶輸入財務數據
-total_assets = st.number_input("遺產總額（萬）", min_value=0, value=5000)
+st.subheader("請輸入遺產資訊")
+total_assets = st.slider("遺產總額（萬）", min_value=1000, max_value=100000, value=5000, step=100)
 
 st.subheader("扣除額（根據家庭成員數填寫）")
 has_spouse = st.checkbox("是否有配偶（配偶扣除額 553 萬）")
 spouse_deduction = 553 if has_spouse else 0
 
-adult_children = st.number_input("直系血親卑親屬扣除額（每人 56 萬）", min_value=0, value=0)
-parents = st.number_input("父母扣除額（每人 138 萬）", min_value=0, value=0, max_value=2)
+adult_children = st.slider("直系血親卑親屬扣除額（每人 56 萬）", min_value=0, max_value=10, value=0)
+parents = st.slider("父母扣除額（每人 138 萬，最多 2 人）", min_value=0, max_value=2, value=0)
 
-
-# 限制重度身心障礙者人數不能超過 配偶 + 直系血親卑親屬 + 其他受扶養人數
-max_disabled_people = has_spouse + adult_children + parents
-disabled_people = st.number_input("重度以上身心障礙者數（每人 693 萬）", min_value=0, value=0, max_value=max_disabled_people)
+disabled_people = st.slider("重度以上身心障礙者數（每人 693 萬）", min_value=0, max_value=adult_children + parents + has_spouse, value=0)
 disabled_deduction = disabled_people * 693
 
-other_dependents = st.number_input("受撫養之兄弟姊妹、祖父母數（每人 56 萬）", min_value=0, value=0)
+other_dependents = st.slider("受撫養之兄弟姊妹、祖父母數（每人 56 萬）", min_value=0, max_value=5, value=0)
 
-if st.button("計算遺產稅"):
-    # 計算遺產稅
-    taxable_amount, tax_due, exempt_amount, total_deductions = calculate_estate_tax(
-        total_assets, spouse_deduction, adult_children, other_dependents, disabled_people
-    )
+# 計算遺產稅
+taxable_amount, tax_due, exempt_amount, total_deductions = calculate_estate_tax(
+    total_assets, spouse_deduction, adult_children, other_dependents, disabled_people, parents
+)
 
-    st.subheader(f"📌 預估遺產稅：{tax_due:,.2f} 萬元")
+st.subheader(f"📌 預估遺產稅：{tax_due:,.2f} 萬元")
 
-    # 顯示財務總覽（分三大區塊）
-    section1 = pd.DataFrame({
-        "項目": ["遺產總額"],
-        "金額（萬）": [total_assets]
-    })
-    st.markdown("**第一區：資產概況**")
-    st.table(section1)
+# 顯示財務總覽（分三大區塊）
+section1 = pd.DataFrame({
+    "項目": ["遺產總額"],
+    "金額（萬）": [total_assets]
+})
+st.markdown("**第一區：資產概況**")
+st.table(section1)
 
-    section2 = pd.DataFrame({
-        "項目": ["免稅額", "喪葬費扣除額", "配偶扣除額", "直系血親卑親屬扣除額","父母扣除額", "重度身心障礙扣除額", "其他撫養扣除額"],
-        "金額（萬）": [exempt_amount, 138, spouse_deduction, adult_children * 56, parents * 138, disabled_deduction, other_dependents * 56]
-    })
-    st.markdown("**第二區：扣除項目**")
-    st.table(section2)
+section2 = pd.DataFrame({
+    "項目": ["免稅額", "喪葬費扣除額", "配偶扣除額", "直系血親卑親屬扣除額", "父母扣除額", "重度身心障礙扣除額", "其他撫養扣除額"],
+    "金額（萬）": [exempt_amount, 138, spouse_deduction, adult_children * 56, parents * 138, disabled_deduction, other_dependents * 56]
+})
+st.markdown("**第二區：扣除項目**")
+st.table(section2)
 
-    section3 = pd.DataFrame({
-        "項目": ["課稅遺產淨額", "預估遺產稅"],
-        "金額（萬）": [taxable_amount, tax_due]
-    })
-    st.markdown("**第三區：稅務計算**")
-    st.table(section3)
+section3 = pd.DataFrame({
+    "項目": ["課稅遺產淨額", "預估遺產稅"],
+    "金額（萬）": [taxable_amount, tax_due]
+})
+st.markdown("**第三區：稅務計算**")
+st.table(section3)
 
-    st.write("### 💡 節稅建議")
-    st.markdown("✅ **透過壽險補足遺產稅缺口，減少資產流失**")
-    st.markdown("✅ **提前贈與部分資產，以降低總遺產金額**")
-    st.markdown("✅ **使用信託來管理與傳承財富，確保資產長期穩定**")
-
-    # 加入行銷宣傳與聯繫資訊
-    st.markdown("---")
-    st.subheader("📢 進一步了解家族傳承與節稅策略")
-    st.write("想要更深入了解如何透過專業規劃降低遺產稅負擔，確保財富順利傳承？歡迎聯繫我們！")
-    st.markdown("💼 **永傳家族辦公室**")
-    st.markdown("🌐 [www.gracefo.com](http://www.gracefo.com)")
-    st.markdown("📞 預約諮詢，找到最適合您的傳承方案！")
+# 視覺化圖表
+st.subheader("📊 視覺化稅負概覽")
+fig, ax = plt.subplots()
+labels = ["免稅額", "扣除額", "課稅遺產淨額", "預估遺產稅"]
+data = [exempt_amount, total_deductions, taxable_amount, tax_due]
+ax.pie(data, labels=labels, autopct='%1.1f%%', startangle=90, colors=["#ff9999", "#66b3ff", "#99ff99", "#ffcc99"])
+ax.axis('equal')
+st.pyplot(fig)
