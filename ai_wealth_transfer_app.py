@@ -10,9 +10,9 @@ def calculate_estate_tax(total_assets, spouse_deduction, adult_children, other_d
     funeral_expense = 138  # 喪葬費扣除額固定
 
     # 計算總扣除額
-        max_disabled_people = has_spouse + adult_children + other_dependents
-    disabled_people = min(disabled_people, max_disabled_people)
-    deductions = spouse_deduction + funeral_expense + (disabled_people * 693) + (adult_children * 56) + (other_dependents * 56)
+    max_disabled_people = has_spouse + adult_children + other_dependents
+disabled_people = min(disabled_people, max_disabled_people)
+deductions = spouse_deduction + funeral_expense + (disabled_people * 693) + (adult_children * 56) + (other_dependents * 56)
 
     # 計算課稅遺產淨額（取整數）
     taxable_amount = int(max(0, total_assets - exempt_amount - deductions))
