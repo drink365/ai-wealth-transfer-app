@@ -28,6 +28,15 @@ def calculate_estate_tax(total_assets, spouse_deduction, adult_children, other_d
 
     return taxable_amount, round(tax_due, 2), exempt_amount, deductions
 
+# AI 提供規劃建議
+def generate_advice(taxable_amount, tax_due):
+    if taxable_amount < 5000:
+        return "💡 您的遺產稅負擔較低，但仍可透過贈與或保險策略進一步優化資產配置。"
+    elif 5000 <= taxable_amount < 20000:
+        return "📌 您的遺產稅較高，建議考慮保險、信託等工具來提前規劃，減少遺產稅負擔。"
+    else:
+        return "🚨 您的遺產規模較大，遺產稅負擔沉重！建議與專業顧問討論，立即啟動家族財稅規劃。"
+
 # Streamlit UI 設計
 st.set_page_config(page_title="遺產稅試算工具", layout="wide")
 st.header("遺產稅試算工具")
@@ -59,10 +68,7 @@ taxable_amount, tax_due, exempt_amount, total_deductions = calculate_estate_tax(
 st.subheader(f"📌 預估遺產稅：{tax_due:,.2f} 萬元")
 
 # 顯示財務總覽（分三大區塊）
-section1 = pd.DataFrame({
-    "項目": ["遺產總額"],
-    "金額（萬）": [total_assets]
-})
+section1 = pd.DataFrame({"項目": ["遺產總額"], "金額（萬）": [total_assets]})
 st.markdown("**第一區：資產概況**")
 st.table(section1)
 
@@ -73,12 +79,14 @@ section2 = pd.DataFrame({
 st.markdown("**第二區：扣除項目**")
 st.table(section2)
 
-section3 = pd.DataFrame({
-    "項目": ["課稅遺產淨額", "預估遺產稅"],
-    "金額（萬）": [taxable_amount, tax_due]
-})
+section3 = pd.DataFrame({"項目": ["課稅遺產淨額", "預估遺產稅"], "金額（萬）": [taxable_amount, tax_due]})
 st.markdown("**第三區：稅務計算**")
 st.table(section3)
+
+# AI 規劃建議
+st.markdown("---")
+st.markdown("## 📢 AI 規劃建議")
+st.markdown(generate_advice(taxable_amount, tax_due))
 
 # 行銷導客資訊
 st.markdown("---")
@@ -89,8 +97,6 @@ st.markdown(
     "📌 如果資金不足，可能需要變賣資產、貸款繳稅，甚至影響家族未來發展。\n"
     "但 透過合適的財務規劃，您可以讓傳承更順利，讓家人更安心！"
 )
-st.markdown(
-    "📢 **現在就行動！永傳家族辦公室，幫助您規劃最合適的財富傳承方案！**"
-)
+st.markdown("📢 **現在就行動！永傳家族辦公室，幫助您規劃最合適的財富傳承方案！**")
 st.markdown("📩 **立即預約免費諮詢！**")
 st.markdown("🌐 [www.gracefo.com](https://www.gracefo.com)")
