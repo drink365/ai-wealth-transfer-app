@@ -31,7 +31,7 @@ def calculate_estate_tax(total_assets, spouse_deduction, adult_children, other_d
 # AI 提供規劃建議
 def generate_advice(taxable_amount, tax_due):
     if taxable_amount < 5000:
-        return "💡 您的遺產稅負擔中等，但仍可透過贈與或保險策略進一步優化資產配置。"
+        return "💡 您的遺產稅負擔不高，但仍可透過贈與或保險策略進一步優化資產配置。"
     elif 5000 <= taxable_amount < 20000:
         return "📌 您的遺產稅較高，建議考慮保險、信託等工具來提前規劃，減少遺產稅負擔。"
     else:
