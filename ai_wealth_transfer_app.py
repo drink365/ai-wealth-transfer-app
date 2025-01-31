@@ -33,7 +33,7 @@ st.set_page_config(page_title="遺產稅試算工具", layout="wide")
 st.header("遺產稅試算工具")
 
 # **將 '選擇適用地區' 放在最前面**
-region = st.selectbox("選擇適用地區", ["台灣"], index=0)
+region = st.selectbox("選擇適用地區", ["台灣（2025年起）"], index=0)
 
 # 用戶輸入財務數據
 total_assets = st.number_input("遺產總額（萬）", min_value=0, value=5000)
