@@ -7,9 +7,10 @@ def calculate_estate_tax(total_assets, debts, region):
     計算遺產稅負：目前支持台灣 2025 年稅制
     """
     net_assets = total_assets - debts
-    tax_brackets = [(5621, 0.1), (12420, 0.15), (float('inf'), 0.2)]
     exempt_amount = 1333  # 免稅額（萬）
     taxable_amount = max(0, net_assets - exempt_amount)
+    
+    tax_brackets = [(5621, 0.1), (11242, 0.15), (float('inf'), 0.2)]
     
     tax_due = 0
     previous_bracket = 0
