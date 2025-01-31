@@ -32,10 +32,11 @@ def calculate_estate_tax(total_assets, spouse_deduction, adult_children, other_d
 st.set_page_config(page_title="遺產稅試算工具", layout="wide")
 st.header("遺產稅試算工具")
 
+# **將 '選擇適用地區' 放在最前面**
+region = st.selectbox("選擇適用地區", ["台灣"], index=0)
+
 # 用戶輸入財務數據
-region = st.selectbox("選擇適用地區", ["台灣"], index=0)
 total_assets = st.number_input("遺產總額（萬）", min_value=0, value=5000)
-region = st.selectbox("選擇適用地區", ["台灣"], index=0)
 
 st.subheader("扣除額（根據家庭成員數填寫）")
 has_spouse = st.checkbox("是否有配偶（配偶扣除額 553 萬）")
@@ -51,7 +52,7 @@ if st.button("計算遺產稅"):
         total_assets, spouse_deduction, adult_children, other_dependents, disabled_deduction
     )
 
-    st.subheader(f"📌 預估遺產稅：{tax_due:,} 萬元")
+    st.subheader(f"📌 預估遺產稅：{tax_due:,.2f} 萬元")
 
     # 顯示財務總覽（分三大區塊）
     section1 = pd.DataFrame({
@@ -69,7 +70,7 @@ if st.button("計算遺產稅"):
     st.table(section2)
 
     section3 = pd.DataFrame({
-        "項目": ["課稅遺產淨額", "預計遺產稅"],
+        "項目": ["課稅遺產淨額", "預估遺產稅"],
         "金額（萬）": [taxable_amount, tax_due]
     })
     st.markdown("**第三區：稅務計算**")
