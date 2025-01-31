@@ -10,7 +10,9 @@ def calculate_estate_tax(total_assets, spouse_deduction, adult_children, other_d
     funeral_expense = 138  # 喪葬費扣除額固定
 
     # 計算總扣除額
-    deductions = spouse_deduction + funeral_expense + disabled_deduction + (adult_children * 56) + (other_dependents * 56)
+    max_disabled_people = has_spouse + adult_children + other_dependents
+disabled_people = min(disabled_people, max_disabled_people)
+deductions = spouse_deduction + funeral_expense + (disabled_people * 693) + (adult_children * 56) + (other_dependents * 56)
 
     # 計算課稅遺產淨額（取整數）
     taxable_amount = int(max(0, total_assets - exempt_amount - deductions))
@@ -43,7 +45,8 @@ has_spouse = st.checkbox("是否有配偶（配偶扣除額 553 萬）")
 spouse_deduction = 553 if has_spouse else 0
 
 adult_children = st.number_input("直系血親卑親屬扣除額（每人 56 萬）", min_value=0, value=0)
-disabled_deduction = st.number_input("重度以上身心障礙者扣除額（每人 693 萬）", min_value=0, value=0)
+disabled_people = st.number_input("重度以上身心障礙者數（每人 693 萬）", min_value=0, value=0)
+disabled_deduction = disabled_people * 693
 other_dependents = st.number_input("受撫養之兄弟姊妹、祖父母數（每人 56 萬）", min_value=0, value=0)
 
 if st.button("計算遺產稅"):
