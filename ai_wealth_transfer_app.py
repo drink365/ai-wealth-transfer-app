@@ -44,13 +44,14 @@ spouse_deduction = 553 if has_spouse else 0
 
 adult_children = st.number_input("直系血親卑親屬扣除額（每人 56 萬）", min_value=0, value=0)
 parents = st.number_input("父母扣除額（每人 138 萬）", min_value=0, value=0, max_value=2)
-other_dependents = st.number_input("受撫養之兄弟姊妹、祖父母數（每人 56 萬）", min_value=0, value=0)
+
 
 # 限制重度身心障礙者人數不能超過 配偶 + 直系血親卑親屬 + 其他受扶養人數
 max_disabled_people = has_spouse + adult_children + parents
 disabled_people = st.number_input("重度以上身心障礙者數（每人 693 萬）", min_value=0, value=0, max_value=max_disabled_people)
-
 disabled_deduction = disabled_people * 693
+
+other_dependents = st.number_input("受撫養之兄弟姊妹、祖父母數（每人 56 萬）", min_value=0, value=0)
 
 if st.button("計算遺產稅"):
     # 計算遺產稅
@@ -69,8 +70,8 @@ if st.button("計算遺產稅"):
     st.table(section1)
 
     section2 = pd.DataFrame({
-        "項目": ["免稅額", "喪葬費扣除額", "配偶扣除額", "直系血親卑親屬扣除額", "重度身心障礙扣除額", "其他撫養扣除額"],
-        "金額（萬）": [exempt_amount, 138, spouse_deduction, adult_children * 56, disabled_deduction, other_dependents * 56]
+        "項目": ["免稅額", "喪葬費扣除額", "配偶扣除額", "直系血親卑親屬扣除額","父母", "重度身心障礙扣除額", "其他撫養扣除額"],
+        "金額（萬）": [exempt_amount, 138, spouse_deduction, adult_children * 56, parents * 138, disabled_deduction, other_dependents * 56]
     })
     st.markdown("**第二區：扣除項目**")
     st.table(section2)
