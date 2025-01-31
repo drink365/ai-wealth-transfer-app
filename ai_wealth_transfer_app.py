@@ -38,26 +38,19 @@ region = st.selectbox("選擇適用地區", ["台灣（2025年起）"], index=0)
 
 # 用戶輸入財務數據
 st.subheader("請輸入遺產資訊")
-col1, col2 = st.columns(2)
-with col1:
-    total_assets = st.slider("遺產總額（萬）", min_value=1000, max_value=100000, value=5000, step=100)
-with col2:
-    total_assets_input = st.number_input("手動輸入遺產總額（萬）", min_value=1000, max_value=100000, value=total_assets, step=100)
-    if total_assets_input != total_assets:
-        total_assets = total_assets_input
+total_assets = st.number_input("遺產總額（萬）", min_value=1000, max_value=100000, value=5000, step=100)
 
 st.subheader("扣除額（根據家庭成員數填寫）")
 has_spouse = st.checkbox("是否有配偶（配偶扣除額 553 萬）")
 spouse_deduction = 553 if has_spouse else 0
 
-adult_children = st.slider("直系血親卑親屬扣除額（每人 56 萬）", min_value=0, max_value=10, value=0)
-parents = st.slider("父母扣除額（每人 138 萬，最多 2 人）", min_value=0, max_value=2, value=0)
+adult_children = st.number_input("直系血親卑親屬扣除額（每人 56 萬）", min_value=0, max_value=10, value=0)
+parents = st.number_input("父母扣除額（每人 138 萬，最多 2 人）", min_value=0, max_value=2, value=0)
 
-max_disabled_people = max(1, adult_children + parents + (1 if has_spouse else 0))
-disabled_people = st.slider("重度以上身心障礙者數（每人 693 萬）", min_value=0, max_value=max_disabled_people, value=0)
+disabled_people = st.number_input("重度以上身心障礙者數（每人 693 萬）", min_value=0, max_value=max(1, adult_children + parents + (1 if has_spouse else 0)), value=0)
 disabled_deduction = disabled_people * 693
 
-other_dependents = st.slider("受撫養之兄弟姊妹、祖父母數（每人 56 萬）", min_value=0, max_value=5, value=0)
+other_dependents = st.number_input("受撫養之兄弟姊妹、祖父母數（每人 56 萬）", min_value=0, max_value=5, value=0)
 
 # 計算遺產稅
 taxable_amount, tax_due, exempt_amount, total_deductions = calculate_estate_tax(
@@ -95,5 +88,7 @@ labels = ["免稅額", "扣除額", "課稅遺產淨額", "預估遺產稅"]
 data = [exempt_amount, total_deductions, taxable_amount, tax_due]
 ax.bar(labels, data, color=["#ff9999", "#66b3ff", "#99ff99", "#ffcc99"])
 ax.set_ylabel("金額（萬）")
-ax.set_title("遺產稅計算結果")
+ax.set_title("遺產稅計算結果", fontproperties="SimHei")
+plt.xticks(fontproperties="SimHei")
+plt.yticks(fontproperties="SimHei")
 st.pyplot(fig)
