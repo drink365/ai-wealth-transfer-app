@@ -36,7 +36,7 @@ st.header("遺產稅試算工具")
 
 # 用戶輸入財務數據
 total_assets = st.number_input("總資產（萬）", min_value=0, value=5000)
-debts = st.number_input("債務（萬）", min_value=0, value=1000)
+debts = 
 region = st.selectbox("選擇適用地區", ["台灣"], index=0)
 
 st.subheader("扣除額（根據家庭成員數填寫）")
@@ -57,8 +57,8 @@ if st.button("計算遺產稅"):
     
     # 顯示財務總覽（分三大區塊）
     section1 = pd.DataFrame({
-        "項目": ["總資產", "債務", "淨遺產"],
-        "金額（萬）": [total_assets, debts, total_assets - debts]
+        "項目": ["遺產總額", "淨遺產"],
+        "金額（萬）": [total_assets, total_assets]
     })
     st.markdown("**第一區：資產概況**")
     st.table(section1)
