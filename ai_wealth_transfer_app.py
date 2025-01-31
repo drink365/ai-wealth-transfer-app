@@ -33,6 +33,7 @@ st.set_page_config(page_title="遺產稅試算工具", layout="wide")
 st.header("遺產稅試算工具")
 
 # 用戶輸入財務數據
+region = st.selectbox("選擇適用地區", ["台灣"], index=0)
 total_assets = st.number_input("遺產總額（萬）", min_value=0, value=5000)
 region = st.selectbox("選擇適用地區", ["台灣"], index=0)
 
@@ -50,7 +51,7 @@ if st.button("計算遺產稅"):
         total_assets, spouse_deduction, adult_children, other_dependents, disabled_deduction
     )
 
-    st.subheader(f"📌 預計遺產稅：{tax_due:,} 萬元")
+    st.subheader(f"📌 預估遺產稅：{tax_due:,} 萬元")
 
     # 顯示財務總覽（分三大區塊）
     section1 = pd.DataFrame({
