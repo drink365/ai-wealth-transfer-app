@@ -31,7 +31,7 @@ def calculate_estate_tax(total_assets, debts, spouse_deduction, adult_children, 
 
 # Streamlit UI 設計
 st.set_page_config(page_title="AI 傳承規劃助理", layout="wide")
-st.title("AI 傳承規劃助理")
+
 st.header("遺產稅試算工具")
 
 # 用戶輸入財務數據
