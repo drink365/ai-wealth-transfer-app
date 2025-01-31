@@ -26,7 +26,7 @@ def calculate_estate_tax(total_assets, spouse_deduction, adult_children, other_d
             tax_due += taxable_at_this_rate * rate
             previous_bracket = bracket
 
-    return taxable_amount, int(tax_due), exempt_amount, deductions
+    return taxable_amount, round(tax_due, 2), exempt_amount, deductions
 
 # Streamlit UI 設計
 st.set_page_config(page_title="遺產稅試算工具", layout="wide")
