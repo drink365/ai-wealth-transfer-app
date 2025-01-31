@@ -84,7 +84,7 @@ if st.button("計算遺產稅"):
     st.table(section3)
 
     st.write("### 💡 節稅建議")
-    st.markdown("✅ **考慮透過壽險補足遺產稅缺口，減少資產流失**")
+    st.markdown("✅ **透過壽險補足遺產稅缺口，減少資產流失**")
     st.markdown("✅ **提前贈與部分資產，以降低總遺產金額**")
     st.markdown("✅ **使用信託來管理與傳承財富，確保資產長期穩定**")
 
