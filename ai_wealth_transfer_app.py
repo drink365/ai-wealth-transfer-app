@@ -12,7 +12,7 @@ def calculate_estate_tax(total_assets, debts, spouse_deduction, adult_children, 
     # 計算總扣除額
     deductions = spouse_deduction + funeral_expense + disabled_deduction + (adult_children * 56) + (other_dependents * 56)
     
-    # 計算淨遺產與應稅遺產
+    # 計算淨遺產與課稅遺產淨額
     net_assets = total_assets - debts
     taxable_amount = max(0, net_assets - exempt_amount - deductions)
     
