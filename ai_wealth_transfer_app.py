@@ -2,6 +2,11 @@ import streamlit as st
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import matplotlib
+
+# 設定 Matplotlib 中文字體，防止亂碼
+matplotlib.rc("font", family="Arial Unicode MS")  # 適用 macOS
+matplotlib.rc("axes", unicode_minus=False)  # 確保負號正確顯示
 
 def calculate_estate_tax(total_assets, spouse_deduction, adult_children, other_dependents, disabled_people, parents):
     """
@@ -88,7 +93,5 @@ labels = ["免稅額", "扣除額", "課稅遺產淨額", "預估遺產稅"]
 data = [exempt_amount, total_deductions, taxable_amount, tax_due]
 ax.bar(labels, data, color=["#ff9999", "#66b3ff", "#99ff99", "#ffcc99"])
 ax.set_ylabel("金額（萬）")
-ax.set_title("遺產稅計算結果", fontproperties="SimHei")
-plt.xticks(fontproperties="SimHei")
-plt.yticks(fontproperties="SimHei")
+ax.set_title("遺產稅計算結果")
 st.pyplot(fig)
