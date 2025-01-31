@@ -70,7 +70,7 @@ if st.button("計算遺產稅"):
     st.table(section1)
 
     section2 = pd.DataFrame({
-        "項目": ["免稅額", "喪葬費扣除額", "配偶扣除額", "直系血親卑親屬扣除額","父母", "重度身心障礙扣除額", "其他撫養扣除額"],
+        "項目": ["免稅額", "喪葬費扣除額", "配偶扣除額", "直系血親卑親屬扣除額","父母扣除額", "重度身心障礙扣除額", "其他撫養扣除額"],
         "金額（萬）": [exempt_amount, 138, spouse_deduction, adult_children * 56, parents * 138, disabled_deduction, other_dependents * 56]
     })
     st.markdown("**第二區：扣除項目**")
