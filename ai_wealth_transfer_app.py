@@ -12,8 +12,8 @@ def calculate_estate_tax(total_assets, spouse_deduction, adult_children, other_d
     # 計算總扣除額
     deductions = spouse_deduction + funeral_expense + disabled_deduction + (adult_children * 56) + (other_dependents * 56)
     
-    # 計算課稅遺產淨額
-    taxable_amount = max(0, total_assets - exempt_amount - deductions)
+    # 計算課稅遺產淨額（取整數）
+    taxable_amount = int(max(0, total_assets - exempt_amount - deductions))
     
     # 台灣 2025 年累進稅率
     tax_brackets = [(5621, 0.1), (11242, 0.15), (float('inf'), 0.2)]
@@ -68,8 +68,8 @@ if st.button("計算遺產稅"):
     st.table(section2)
     
     section3 = pd.DataFrame({
-        "項目": ["課稅遺產淨額", "預估遺產稅"],
-        "金額（萬）": [int(max(0, total_assets - exempt_amount - total_deductions)), tax_due]
+        "項目": ["課稅遺產淨額", "預計遺產稅"],
+        "金額（萬）": [taxable_amount, tax_due]
     })
     st.markdown("**第三區：稅務計算**")
     st.table(section3)
