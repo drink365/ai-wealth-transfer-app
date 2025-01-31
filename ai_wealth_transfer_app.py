@@ -53,7 +53,8 @@ spouse_deduction = 553 if has_spouse else 0
 adult_children = st.slider("直系血親卑親屬扣除額（每人 56 萬）", min_value=0, max_value=10, value=0)
 parents = st.slider("父母扣除額（每人 138 萬，最多 2 人）", min_value=0, max_value=2, value=0)
 
-disabled_people = st.slider("重度以上身心障礙者數（每人 693 萬）", min_value=0, max_value=adult_children + parents + has_spouse, value=0)
+max_disabled_people = max(0, adult_children + parents + (1 if has_spouse else 0))
+disabled_people = st.slider("重度以上身心障礙者數（每人 693 萬）", min_value=0, max_value=max_disabled_people, value=0)
 disabled_deduction = disabled_people * 693
 
 other_dependents = st.slider("受撫養之兄弟姊妹、祖父母數（每人 56 萬）", min_value=0, max_value=5, value=0)
