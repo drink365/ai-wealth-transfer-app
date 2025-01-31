@@ -54,8 +54,8 @@ if st.button("計算遺產稅"):
     
     # 顯示財務總覽（分三大區塊）
     section1 = pd.DataFrame({
-        "項目": ["遺產總額", "淨遺產"],
-        "金額（萬）": [total_assets, total_assets]
+        "項目": ["遺產總額"],
+        "金額（萬）": [total_assets]
     })
     st.markdown("**第一區：資產概況**")
     st.table(section1)
@@ -68,8 +68,8 @@ if st.button("計算遺產稅"):
     st.table(section2)
     
     section3 = pd.DataFrame({
-        "項目": ["課稅遺產淨額", "預計遺產稅"],
-        "金額（萬）": [max(0, total_assets - exempt_amount - total_deductions), tax_due]
+        "項目": ["課稅遺產淨額", "預估遺產稅"],
+        "金額（萬）": [int(max(0, total_assets - exempt_amount - total_deductions)), tax_due]
     })
     st.markdown("**第三區：稅務計算**")
     st.table(section3)
