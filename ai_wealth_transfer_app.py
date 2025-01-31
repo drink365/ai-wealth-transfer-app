@@ -90,7 +90,6 @@ st.markdown(generate_advice(taxable_amount, tax_due))
 
 # 行銷導客資訊
 st.markdown("---")
-st.markdown("# 📢 你的遺產稅，家人準備好了嗎？")
 st.markdown("🔍 **您知道嗎？許多家庭在面臨遺產稅時，才發現問題比想像中大！**")
 st.markdown(f"💰 **您的預估遺產稅為 {tax_due:,.2f} 萬，家人準備好了嗎？**")
 st.markdown(
