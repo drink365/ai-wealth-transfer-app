@@ -79,3 +79,17 @@ section3 = pd.DataFrame({
 })
 st.markdown("**第三區：稅務計算**")
 st.table(section3)
+
+# 行銷導客資訊
+st.markdown("---")
+st.markdown("🔍 **您知道嗎？許多家庭在面臨遺產稅時，才發現問題比想像中大！**")
+st.markdown(f"💰 **您的預估遺產稅為 {tax_due:,.2f} 萬，家人準備好了嗎？**")
+st.markdown(
+    "📌 如果資金不足，可能需要變賣資產、貸款繳稅，甚至影響家族未來發展。\n"
+    "但 透過合適的財務規劃，您可以讓傳承更順利，讓家人更安心！"
+)
+st.markdown(
+    "📢 **現在就行動！永傳家族辦公室，幫助您規劃最合適的財富傳承方案！**"
+)
+st.markdown("📩 **立即預約免費諮詢！**")
+st.markdown("🌐 [www.gracefo.com](https://www.gracefo.com)")
