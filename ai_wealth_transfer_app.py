@@ -38,7 +38,13 @@ region = st.selectbox("選擇適用地區", ["台灣（2025年起）"], index=0)
 
 # 用戶輸入財務數據
 st.subheader("請輸入遺產資訊")
-total_assets = st.slider("遺產總額（萬）", min_value=1000, max_value=100000, value=5000, step=100)
+col1, col2 = st.columns(2)
+with col1:
+    total_assets = st.slider("遺產總額（萬）", min_value=1000, max_value=100000, value=5000, step=100)
+with col2:
+    total_assets_input = st.number_input("手動輸入遺產總額（萬）", min_value=1000, max_value=100000, value=total_assets, step=100)
+    if total_assets_input != total_assets:
+        total_assets = total_assets_input
 
 st.subheader("扣除額（根據家庭成員數填寫）")
 has_spouse = st.checkbox("是否有配偶（配偶扣除額 553 萬）")
@@ -82,10 +88,11 @@ st.markdown("**第三區：稅務計算**")
 st.table(section3)
 
 # 視覺化圖表
-st.subheader("📊 視覺化稅負概覽")
+st.subheader("📊 稅負比較圖")
 fig, ax = plt.subplots()
 labels = ["免稅額", "扣除額", "課稅遺產淨額", "預估遺產稅"]
 data = [exempt_amount, total_deductions, taxable_amount, tax_due]
-ax.pie(data, labels=labels, autopct='%1.1f%%', startangle=90, colors=["#ff9999", "#66b3ff", "#99ff99", "#ffcc99"])
-ax.axis('equal')
+ax.bar(labels, data, color=["#ff9999", "#66b3ff", "#99ff99", "#ffcc99"])
+ax.set_ylabel("金額（萬）")
+ax.set_title("遺產稅計算結果")
 st.pyplot(fig)
