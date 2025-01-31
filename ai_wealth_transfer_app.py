@@ -86,7 +86,7 @@ st.table(section3)
 # AI 規劃建議
 st.markdown("---")
 st.markdown("# 📢 AI 規劃建議")
-st.markdown(generate_advice(taxable_amount, tax_due))
+st.markdown(f"**{generate_advice(taxable_amount, tax_due)}**")
 
 # 行銷導客資訊
 st.markdown("---")
