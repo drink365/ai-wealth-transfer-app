@@ -39,6 +39,8 @@ total_assets = st.number_input("總資產（萬）", min_value=0, value=5000)
 debts = st.number_input("債務（萬）", min_value=0, value=1000)
 region = st.selectbox("選擇適用地區", ["台灣"], index=0)
 
+st.markdown("---")
+
 st.subheader("扣除額（根據家庭成員數填寫）")
 has_spouse = st.checkbox("是否有配偶（配偶扣除額 553 萬）")
 spouse_deduction = 553 if has_spouse else 0
@@ -57,10 +59,10 @@ if st.button("計算遺產稅"):
     
     # 顯示財務總覽
     data = {
-        "項目": ["總資產", "債務", "配偶扣除額", "喪葬費扣除額", "重度身心障礙扣除額", "直系血親卑親屬扣除額", "其他撫養扣除額", "免稅額", "淨遺產", "應稅遺產", "預計遺產稅"],
+        "項目": ["總資產", "債務", "---", "免稅額", "喪葬費扣除額", "配偶扣除額", "直系血親卑親屬扣除額", "重度身心障礙扣除額", "其他撫養扣除額", "---", "淨遺產", "應稅遺產", "預計遺產稅"],
         "金額（萬）": [
-            total_assets, debts, spouse_deduction, 138, disabled_deduction, adult_children * 56, 
-            other_dependents * 56, exempt_amount, total_assets - debts, max(0, total_assets - debts - exempt_amount - total_deductions), tax_due
+            total_assets, debts, "---", exempt_amount, 138, spouse_deduction, adult_children * 56, 
+            disabled_deduction, other_dependents * 56, "---", total_assets - debts, max(0, total_assets - debts - exempt_amount - total_deductions), tax_due
         ]
     }
     df = pd.DataFrame(data)
