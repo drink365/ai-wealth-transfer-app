@@ -177,6 +177,10 @@ def inject_custom_css():
         color: #2c3e50;
         text-align: center;
     }
+    .banner {
+        width: 100%;
+        margin-bottom: 20px;
+    }
     .data-card {
         background-color: #ffffff;
         padding: 15px;
@@ -198,14 +202,17 @@ def inject_custom_css():
 def main():
     st.set_page_config(page_title="遺產稅試算工具", layout="wide")
     inject_custom_css()
-    st.markdown("<h1 class='main-header'>遺產稅試算工具</h1>", unsafe_allow_html=True)
     
+    # 增加橫幅圖片（請替換為您喜歡的圖片網址）
+    st.image("https://via.placeholder.com/1200x300.png?text=永傳家族辦公室", use_container_width=True)
+    
+    st.markdown("<h1 class='main-header'>遺產稅試算工具</h1>", unsafe_allow_html=True)
     st.selectbox("選擇適用地區", ["台灣（2025年起）"], index=0)
     
-    # 輸入區移至主畫面上方
+    # 將輸入區從側邊欄移至主畫面上方
     with st.container():
         st.markdown("### 請輸入資產及家庭資訊", unsafe_allow_html=True)
-        total_assets = st.number_input("遺產總額（萬）", min_value=1000, max_value=100000, value=5000, step=100, help="請輸入您的總遺產金額（單位：萬）")
+        total_assets = st.number_input("遺產總額（萬）", min_value=1000, max_value=100000, value=5000, step=100, help="請輸入您的總資產金額（單位：萬）")
         st.markdown("---")
         st.markdown("#### 請輸入家庭成員數")
         has_spouse = st.checkbox("是否有配偶（扣除額 553 萬）", value=False)
@@ -217,7 +224,9 @@ def main():
         other_dependents = st.number_input("受撫養之兄弟姊妹、祖父母數（每人 56 萬）", min_value=0, max_value=5, value=0, help="請輸入兄弟姊妹或祖父母人數")
     
     try:
-        taxable_amount, tax_due, total_deductions = calculate_estate_tax(total_assets, spouse_deduction, adult_children, other_dependents, disabled_people, parents)
+        taxable_amount, tax_due, total_deductions = calculate_estate_tax(
+            total_assets, spouse_deduction, adult_children, other_dependents, disabled_people, parents
+        )
     except Exception as e:
         st.error(f"計算錯誤：{e}")
         return
@@ -258,8 +267,7 @@ def main():
     
     # 保單規劃策略模擬
     with tabs[0]:
-        st.markdown("#### 保單規劃策略說明", unsafe_allow_html=True)
-        st.markdown("<span class='explanation'>保單規劃策略：保險理賠金和保費依公式計算；未被實質課稅時，理賠金不參與課稅；【被實質課稅】則保險理賠金納入遺產稅計算。</span>", unsafe_allow_html=True)
+        st.markdown("<span class='explanation'>保單策略：保險理賠金和保費依公式計算；未被實質課稅時，理賠金不參與課稅；【被實質課稅】則保險理賠金納入遺產稅計算。</span>", unsafe_allow_html=True)
         insurance_results = simulate_insurance_strategy(total_assets, spouse_deduction, adult_children, other_dependents, disabled_people, parents)
         st.markdown("**【原始情況】**")
         original = insurance_results["原始情況"]
@@ -283,8 +291,7 @@ def main():
     
     # 提前贈與策略模擬
     with tabs[1]:
-        st.markdown("#### 提前贈與策略說明", unsafe_allow_html=True)
-        st.markdown("<span class='explanation'>提前贈與策略：每年贈與244萬免稅額度，總贈與金額 = 年數 × 244萬；家人收到的金額包含全部贈與金額。</span>", unsafe_allow_html=True)
+        st.markdown("<span class='explanation'>提前贈與策略：每年贈與244萬免稅額度，總贈與金額 = 年數 × 244萬；家人總共收到的金額包含全部贈與金額。</span>", unsafe_allow_html=True)
         years = st.slider("設定提前贈與年數", 1, 10, 3, 1)
         gift_results = simulate_gift_strategy(total_assets, spouse_deduction, adult_children, other_dependents, disabled_people, parents, years)
         st.markdown("**【原始情況】**")
@@ -304,7 +311,6 @@ def main():
     
     # 分散資產配置策略模擬
     with tabs[2]:
-        st.markdown("#### 分散資產配置策略說明", unsafe_allow_html=True)
         st.markdown("<span class='explanation'>分散配置策略：假設分散配置可使稅率下降10%，稅額降至約90%。</span>", unsafe_allow_html=True)
         div_results = simulate_diversified_strategy(tax_due)
         st.markdown("**【原始情況】**")
@@ -314,7 +320,7 @@ def main():
         effect_div = div_results["規劃效果"]
         st.markdown(f"- 規劃效果：<span class='effect'>較原始情況增加 {effect_div['較原始情況增加']:,.2f} 萬元</span>", unsafe_allow_html=True)
     
-    # 行銷導引區塊：引導用戶前往永傳家族辦公室官網
+    # 行銷導引區塊：引導用戶前往官網
     st.markdown("---")
     st.markdown("### 想了解更多？")
     st.markdown("歡迎前往 **永傳家族辦公室**，我們提供專業的家族傳承與財富規劃服務。")
