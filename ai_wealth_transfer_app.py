@@ -167,22 +167,14 @@ def simulate_diversified_strategy(tax_due):
         }
     }
 
-# --- Custom CSS for radio buttons and effect styling ---
+# --- Custom CSS for radio buttons ---
 custom_css = """
 <style>
 /* Increase the font size for the radio options */
 div[data-baseweb="radio"] label {
     font-size: 20px;
 }
-/* Style for the planning effect */
-.effect {
-    color: green;
-    font-weight: bold;
-}
-.explanation {
-    font-size: 18px;
-    color: #0077CC;
-}
+/* Optionally, you can change colors here */
 </style>
 """
 st.markdown(custom_css, unsafe_allow_html=True)
@@ -193,7 +185,7 @@ def main():
     
     st.selectbox("選擇適用地區", ["台灣（2025年起）"], index=0)
     
-    # Input Area: Assets and Family Information
+    # Input Area: Assets and Family Info
     with st.container():
         st.markdown("### 請輸入資產及家庭資訊", unsafe_allow_html=True)
         total_assets = st.number_input("遺產總額（萬）", min_value=1000, max_value=100000,
@@ -208,8 +200,9 @@ def main():
         parents = st.number_input("父母數（每人 138 萬，最多 2 人）", min_value=0, max_value=2,
                                   value=0, help="請輸入父母人數")
         max_disabled = max(1, adult_children + parents + (1 if has_spouse else 0))
-        disabled_people = st.number_input("重度以上身心障礙者數（每人 693 萬）", min_value=0, max_value=max_disabled,
-                                          value=0, help="請輸入重度以上身心障礙者人數")
+        disabled_people = st.number_input("重度以上身心障礙者數（每人 693 萬）", min_value=0,
+                                          max_value=max_disabled, value=0,
+                                          help="請輸入重度以上身心障礙者人數")
         other_dependents = st.number_input("受撫養之兄弟姊妹、祖父母數（每人 56 萬）", min_value=0, max_value=5,
                                            value=0, help="請輸入兄弟姊妹或祖父母人數")
     
@@ -270,7 +263,7 @@ def main():
     st.markdown("## 家族傳承策略建議")
     st.markdown(generate_basic_advice(taxable_amount, tax_due), unsafe_allow_html=True)
     
-    # Use a radio button for strategy selection with no default (empty string as first option)
+    # Use a radio button for strategy selection with no default
     strategy = st.radio("請選擇策略", options=["", "保單規劃策略", "提前贈與策略", "分散配置策略"], index=0, horizontal=True)
     
     if strategy == "保單規劃策略":
@@ -279,25 +272,18 @@ def main():
         st.markdown(f"- 預估遺產稅：**{original_data['預估遺產稅']:,.2f} 萬元**")
         st.markdown(f"- 家人總共收到：**{original_data['家人總共收到']:,.2f} 萬元**")
         st.markdown("<h6 style='color: red;'>【保單規劃策略】</h6>", unsafe_allow_html=True)
-        # First, display the input controls (保費 and 設定比例)
-        default_premium = int(math.ceil(tax_due / 1.3))
-        default_ratio = 1.3
-        premium = st.number_input("請輸入保費（萬）", min_value=0, max_value=100000,
-                                  value=default_premium, step=100, key="insurance_premium")
-        premium_ratio = st.slider("請設定比例", min_value=1.0, max_value=3.0,
-                                  value=default_ratio, step=0.1, key="insurance_ratio")
-        claim_amount = premium * premium_ratio
-        # Now display the current results in place of the removed default results:
-        st.markdown(f"**目前保費：** {premium:,.2f} 萬元")
-        st.markdown(f"**目前理賠金：** {claim_amount:,.2f} 萬元")
-        # Then display the explanation text
         st.markdown("<span class='explanation'>您可以自行調整保費與理賠金比例。</span>", unsafe_allow_html=True)
+        default_premium = int(math.ceil(tax_due / 1.3))
+        premium = st.number_input("請輸入保費（萬）", min_value=0, max_value=100000, value=default_premium, step=100, key="insurance_premium")
+        premium_ratio = st.slider("請設定比例", min_value=1.0, max_value=3.0, value=1.3, step=0.1, key="insurance_ratio")
+        claim_amount = premium * premium_ratio
         if claim_amount < tax_due:
             st.error("警告：稅源不足！")
         insurance_results = simulate_insurance_strategy(
-            total_assets, spouse_deduction, adult_children, other_dependents, disabled_people, parents,
-            premium_ratio, premium
+            total_assets, spouse_deduction, adult_children, other_dependents, disabled_people, parents, premium_ratio, premium
         )
+        st.markdown(f"**保費：** {insurance_results['有規劃保單 (未被實質課稅)']['保費']:,.2f} 萬元")
+        st.markdown(f"**理賠金：** {insurance_results['有規劃保單 (未被實質課稅)']['理賠金']:,.2f} 萬元")
         st.markdown("<h6 style='color: red;'>【有規劃保單（未被實質課稅）】</h6>", unsafe_allow_html=True)
         not_taxed = insurance_results["有規劃保單 (未被實質課稅)"]
         st.markdown(f"- 保費：**{not_taxed['保費']:,.2f} 萬元**")
