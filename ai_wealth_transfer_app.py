@@ -167,24 +167,19 @@ def simulate_diversified_strategy(tax_due):
         }
     }
 
-def inject_custom_css():
-    custom_css = """
-    <style>
-    /* Customize the strategy link style as text hyperlinks */
-    .strategy-link {
-        font-size: 20px;
-        color: blue;
-        text-decoration: none;
-        margin-right: 15px;
-        cursor: pointer;
-    }
-    .strategy-link.selected {
-        text-decoration: underline;
-    }
-    </style>
-    """
-    st.markdown(custom_css, unsafe_allow_html=True)
+# --- Custom CSS for radio buttons ---
+custom_css = """
+<style>
+/* Increase the font size for the radio options */
+div[data-baseweb="radio"] label {
+    font-size: 20px;
+}
+/* Optionally, you can change colors here */
+</style>
+"""
+st.markdown(custom_css, unsafe_allow_html=True)
 
+# --- Main Application ---
 def main():
     st.markdown("<h1 class='main-header'>遺產稅試算工具</h1>", unsafe_allow_html=True)
     
@@ -193,21 +188,23 @@ def main():
     # Input Area: Assets and Family Info
     with st.container():
         st.markdown("### 請輸入資產及家庭資訊", unsafe_allow_html=True)
-        total_assets = st.number_input("遺產總額（萬）", min_value=1000, max_value=100000, value=5000, step=100,
+        total_assets = st.number_input("遺產總額（萬）", min_value=1000, max_value=100000,
+                                       value=5000, step=100,
                                        help="請輸入您的總遺產金額（單位：萬）")
         st.markdown("---")
         st.markdown("#### 請輸入家庭成員數")
         has_spouse = st.checkbox("是否有配偶（扣除額 553 萬）", value=False)
         spouse_deduction = SPOUSE_DEDUCTION_VALUE if has_spouse else 0
-        adult_children = st.number_input("直系血親卑親屬數（每人 56 萬）", min_value=0, max_value=10, value=0,
-                                         help="請輸入直系血親或卑親屬人數")
-        parents = st.number_input("父母數（每人 138 萬，最多 2 人）", min_value=0, max_value=2, value=0,
-                                  help="請輸入父母人數")
+        adult_children = st.number_input("直系血親卑親屬數（每人 56 萬）", min_value=0, max_value=10,
+                                         value=0, help="請輸入直系血親或卑親屬人數")
+        parents = st.number_input("父母數（每人 138 萬，最多 2 人）", min_value=0, max_value=2,
+                                  value=0, help="請輸入父母人數")
         max_disabled = max(1, adult_children + parents + (1 if has_spouse else 0))
-        disabled_people = st.number_input("重度以上身心障礙者數（每人 693 萬）", min_value=0, max_value=max_disabled, value=0,
+        disabled_people = st.number_input("重度以上身心障礙者數（每人 693 萬）", min_value=0,
+                                          max_value=max_disabled, value=0,
                                           help="請輸入重度以上身心障礙者人數")
-        other_dependents = st.number_input("受撫養之兄弟姊妹、祖父母數（每人 56 萬）", min_value=0, max_value=5, value=0,
-                                           help="請輸入兄弟姊妹或祖父母人數")
+        other_dependents = st.number_input("受撫養之兄弟姊妹、祖父母數（每人 56 萬）", min_value=0, max_value=5,
+                                           value=0, help="請輸入兄弟姊妹或祖父母人數")
     
     total_deductions = (spouse_deduction +
                         FUNERAL_EXPENSE +
@@ -266,21 +263,10 @@ def main():
     st.markdown("## 家族傳承策略建議")
     st.markdown(generate_basic_advice(taxable_amount, tax_due), unsafe_allow_html=True)
     
-    # Use plain text hyperlinks as strategy options.
-    query_params = st.query_params  # Access query parameters as a property
-    selected = query_params.get("strategy", [None])[0]
+    # Use a radio button for strategy selection with no default
+    strategy = st.radio("請選擇策略", options=["", "保單規劃策略", "提前贈與策略", "分散配置策略"], index=0, horizontal=True)
     
-    options = [("insurance", "保單規劃策略"), ("gift", "提前贈與策略"), ("diversified", "分散配置策略")]
-    links = []
-    for key, text in options:
-        if selected == key:
-            link = f"<a href='?strategy={key}' target='_self' class='strategy-link selected'>{text}</a>"
-        else:
-            link = f"<a href='?strategy={key}' target='_self' class='strategy-link'>{text}</a>"
-        links.append(link)
-    st.markdown(" | ".join(links), unsafe_allow_html=True)
-    
-    if selected == "insurance":
+    if strategy == "保單規劃策略":
         st.markdown("<h6 style='color: red;'>【原始情況】</h6>", unsafe_allow_html=True)
         st.markdown(f"- 遺產總額：**{original_data['遺產總額']:,.2f} 萬元**")
         st.markdown(f"- 預估遺產稅：**{original_data['預估遺產稅']:,.2f} 萬元**")
@@ -312,7 +298,7 @@ def main():
         st.markdown(f"- 家人總共收到：**{taxed['家人總共收到']:,.2f} 萬元**")
         st.markdown(f"- 規劃效果：<span class='effect'>較原始情況增加 {taxed['規劃效果']:,.2f} 萬元</span>", unsafe_allow_html=True)
     
-    elif selected == "gift":
+    elif strategy == "提前贈與策略":
         st.markdown("<h6 style='color: red;'>【原始情況】</h6>", unsafe_allow_html=True)
         st.markdown(f"- 遺產總額：**{original_data['遺產總額']:,.2f} 萬元**")
         st.markdown(f"- 預估遺產稅：**{original_data['預估遺產稅']:,.2f} 萬元**")
@@ -331,7 +317,7 @@ def main():
         effect_gift = gift_results["規劃效果"]
         st.markdown(f"- 規劃效果：<span class='effect'>較原始情況增加 {effect_gift['較原始情況增加']:,.2f} 萬元</span>", unsafe_allow_html=True)
     
-    elif selected == "diversified":
+    elif strategy == "分散配置策略":
         st.markdown("<h6 style='color: red;'>【原始情況】</h6>", unsafe_allow_html=True)
         original_div = simulate_diversified_strategy(tax_due)["原始情況"]
         st.markdown(f"- 預估遺產稅：**{original_div['預估遺產稅']:,.2f} 萬元**")
