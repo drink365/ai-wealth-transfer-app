@@ -66,7 +66,7 @@ def simulate_insurance_strategy(total_assets, spouse_deduction, adult_children, 
     - 計算出保費 = 保險保額 ÷ premium_ratio
     - 模擬兩種情境：
        ① 未被實質課稅：保險理賠金不參與遺產稅計算
-       ② 被實質課稅：保險理賠金納入遺產計算
+       ② 被實質課稅：保險理賠金納入遺產稅計算
     """
     # 原始情況（無保險規劃）
     _, tax_no_insurance, _ = calculate_estate_tax(
@@ -271,7 +271,8 @@ def main():
     with tabs[0]:
         st.markdown("#### 保單規劃策略說明", unsafe_allow_html=True)
         st.markdown("<span class='explanation'>請輸入您希望購買的保險保額（單位：萬），以及保費與理賠金比例（預設為1.5，表示保費 = 保險保額 ÷ 1.5）。系統將依此計算保費，並模擬兩種情境下的家族傳承效果。</span>", unsafe_allow_html=True)
-        insurance_coverage = st.number_input("請輸入您希望購買的保險保額（萬）", min_value=0, max_value=100000, value=tax_due, step=100)
+        # 將預設保險保額設為稅額（並轉換成整數以確保型態一致）
+        insurance_coverage = st.number_input("請輸入您希望購買的保險保額（萬）", min_value=0, max_value=100000, value=int(tax_due), step=100)
         premium_ratio = st.slider("請設定保費與理賠金比例", min_value=1.0, max_value=3.0, value=1.5, step=0.1, help="較低比例表示保費較低")
         
         # 如果保險保額不足以支付預估遺產稅，則以紅色警告提示
