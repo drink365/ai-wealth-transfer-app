@@ -49,7 +49,7 @@ def calculate_estate_tax(total_assets, spouse_deduction, adult_children, other_d
 
 def generate_basic_advice(taxable_amount, tax_due):
     """
-    提供通用的家族傳承策略建議文案，將所有策略項目全部以藍色標示
+    提供通用的家族傳承策略建議文案，將所有策略項目以藍色標示
     """
     advice = (
         "<span style='color: blue;'>1. 規劃保單</span>：透過保險預留稅源。\n\n"
@@ -193,6 +193,23 @@ def inject_custom_css():
     }
     .explanation {
         color: #0077CC;
+    }
+    /* 自訂 tabs 樣式：將 tabs 按鈕改成有底色且文字較大 */
+    div[role="tablist"] > button {
+        background-color: #ADD8E6;
+        font-size: 18px;
+        color: black;
+        padding: 10px 20px;
+        border: none;
+        margin-right: 5px;
+        border-radius: 5px;
+    }
+    div[role="tablist"] > button:hover {
+        background-color: #87CEEB;
+    }
+    div[role="tablist"] > button:focus {
+        background-color: #00BFFF;
+        outline: none;
     }
     </style>
     """
