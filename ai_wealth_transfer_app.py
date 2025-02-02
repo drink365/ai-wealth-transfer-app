@@ -60,7 +60,7 @@ def simulate_insurance_strategy(total_assets, spouse_deduction, adult_children, 
     - 假設保險理賠金：向上取整至最近100萬（例如297→300）
     - 假設保費 = 假設保險理賠金 ÷ 1.5
     【原始情況】：
-      - 遺產總額、預估稅額、家人總共收到 = 遺產總額 - 預估稅額
+      - 遺產總額、預估稅額、家人總共收到 = 遺產總額 - 預估遺產稅
     【有規劃保單】：
       - (未被實質課稅) 預估稅額 = 稅額(遺產總額 - 假設保費)，家人總共收到 = (遺產總額 - 假設保費 - 預估稅額) + 假設保險理賠金
       - (被實質課稅) 有效遺產 = 遺產總額 - 假設保費 + 假設保險理賠金，家人總共收到 = 有效遺產 - 預估稅額
@@ -209,7 +209,7 @@ def main():
     st.markdown("<h1 class='main-header'>遺產稅試算工具</h1>", unsafe_allow_html=True)
     st.selectbox("選擇適用地區", ["台灣（2025年起）"], index=0)
     
-    # 將輸入區從側邊欄移至主畫面上方
+    # 將輸入區從側邊欄移到主畫面上方
     with st.container():
         st.markdown("### 請輸入資產及家庭資訊", unsafe_allow_html=True)
         total_assets = st.number_input("遺產總額（萬）", min_value=1000, max_value=100000, value=5000, step=100, help="請輸入您的總資產金額（單位：萬）")
