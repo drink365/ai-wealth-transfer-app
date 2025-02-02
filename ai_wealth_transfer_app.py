@@ -49,7 +49,7 @@ def calculate_estate_tax(total_assets, spouse_deduction, adult_children, other_d
 
 def generate_basic_advice(taxable_amount, tax_due):
     """
-    提供通用的家族傳承策略建議文案，將所有策略項目以藍色標示
+    提供通用的家族傳承策略建議文案，將所有策略項目全部以藍色標示
     """
     advice = (
         "<span style='color: blue;'>1. 規劃保單</span>：透過保險預留稅源。\n\n"
@@ -285,11 +285,11 @@ def main():
     
     # 保單規劃策略模擬：先顯示原始情況，再輸入保費與比例
     with tabs[0]:
-        st.markdown("<h5 style='color: red;'>【原始情況】</h5>", unsafe_allow_html=True)
+        st.markdown("<h6 style='color: red;'>【原始情況】</h6>", unsafe_allow_html=True)
         st.markdown(f"- 遺產總額：**{original_data['遺產總額']:,.2f} 萬元**")
         st.markdown(f"- 預估遺產稅：**{original_data['預估遺產稅']:,.2f} 萬元**")
         st.markdown(f"- 家人總共收到：**{original_data['家人總共收到']:,.2f} 萬元**")
-        st.markdown("<h5 style='color: red;'>【保單規劃策略】</h5>", unsafe_allow_html=True)
+        st.markdown("<h6 style='color: red;'>【保單規劃策略】</h6>", unsafe_allow_html=True)
         st.markdown("<span class='explanation'>您可以自行調整保費與理賠金比例。</span>", unsafe_allow_html=True)
         default_premium = int(math.ceil(tax_due / 1.3))
         premium = st.number_input("請輸入保費（萬）", min_value=0, max_value=100000, value=default_premium, step=100)
@@ -303,14 +303,14 @@ def main():
         )
         st.markdown(f"**保費：** {insurance_results['有規劃保單 (未被實質課稅)']['保費']:,.2f} 萬元")
         st.markdown(f"**理賠金：** {insurance_results['有規劃保單 (未被實質課稅)']['理賠金']:,.2f} 萬元")
-        st.markdown("<h5 style='color: red;'>【有規劃保單（未被實質課稅）】</h5>", unsafe_allow_html=True)
+        st.markdown("<h6 style='color: red;'>【有規劃保單（未被實質課稅）】</h6>", unsafe_allow_html=True)
         not_taxed = insurance_results["有規劃保單 (未被實質課稅)"]
         st.markdown(f"- 保費：**{not_taxed['保費']:,.2f} 萬元**")
         st.markdown(f"- 理賠金：**{not_taxed['理賠金']:,.2f} 萬元**")
         st.markdown(f"- 預估遺產稅：**{not_taxed['預估遺產稅']:,.2f} 萬元**")
         st.markdown(f"- 家人總共收到：**{not_taxed['家人總共收到']:,.2f} 萬元**")
         st.markdown(f"- 規劃效果：<span class='effect'>較原始情況增加 {not_taxed['規劃效果']:,.2f} 萬元</span>", unsafe_allow_html=True)
-        st.markdown("<h5 style='color: red;'>【有規劃保單（被實質課稅）】</h5>", unsafe_allow_html=True)
+        st.markdown("<h6 style='color: red;'>【有規劃保單（被實質課稅）】</h6>", unsafe_allow_html=True)
         taxed = insurance_results["有規劃保單 (被實質課稅)"]
         st.markdown(f"- 保費：**{taxed['保費']:,.2f} 萬元**")
         st.markdown(f"- 理賠金：**{taxed['理賠金']:,.2f} 萬元**")
@@ -319,11 +319,11 @@ def main():
     
     # 提前贈與策略模擬：先顯示原始情況，再輸入贈與年數
     with tabs[1]:
-        st.markdown("<h5 style='color: red;'>【原始情況】</h5>", unsafe_allow_html=True)
+        st.markdown("<h6 style='color: red;'>【原始情況】</h6>", unsafe_allow_html=True)
         st.markdown(f"- 遺產總額：**{original_data['遺產總額']:,.2f} 萬元**")
         st.markdown(f"- 預估遺產稅：**{original_data['預估遺產稅']:,.2f} 萬元**")
         st.markdown(f"- 家人總共收到：**{original_data['家人總共收到']:,.2f} 萬元**")
-        st.markdown("<h5 style='color: red;'>【提前贈與後】</h5>", unsafe_allow_html=True)
+        st.markdown("<h6 style='color: red;'>【提前贈與後】</h6>", unsafe_allow_html=True)
         years = st.slider("請設定贈與年數", 1, 10, 3, 1)
         gift_results = simulate_gift_strategy(
             total_assets, spouse_deduction, adult_children, other_dependents, disabled_people, parents, years
@@ -339,10 +339,10 @@ def main():
     
     # 分散資產配置策略模擬：顯示原始情況與分散配置後
     with tabs[2]:
-        st.markdown("<h5 style='color: red;'>【原始情況】</h5>", unsafe_allow_html=True)
+        st.markdown("<h6 style='color: red;'>【原始情況】</h6>", unsafe_allow_html=True)
         original_div = simulate_diversified_strategy(tax_due)["原始情況"]
         st.markdown(f"- 預估遺產稅：**{original_div['預估遺產稅']:,.2f} 萬元**")
-        st.markdown("<h5 style='color: red;'>【分散配置後】</h5>", unsafe_allow_html=True)
+        st.markdown("<h6 style='color: red;'>【分散配置後】</h6>", unsafe_allow_html=True)
         div_results = simulate_diversified_strategy(tax_due)
         st.markdown(f"- 預估遺產稅：**{div_results['分散配置後']['預估遺產稅']:,.2f} 萬元**")
         effect_div = div_results["規劃效果"]
