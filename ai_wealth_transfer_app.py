@@ -189,24 +189,25 @@ def main():
     
     st.selectbox("選擇適用地區", ["台灣（2025年起）"], index=0)
     
-    # Input area: Assets and Family Info
+    # Input Area: Assets and Family Information
     with st.container():
         st.markdown("### 請輸入資產及家庭資訊", unsafe_allow_html=True)
-        total_assets = st.number_input("遺產總額（萬）", min_value=1000, max_value=100000, value=5000, step=100,
+        total_assets = st.number_input("遺產總額（萬）", min_value=1000, max_value=100000, 
+                                       value=5000, step=100,
                                        help="請輸入您的總遺產金額（單位：萬）")
         st.markdown("---")
         st.markdown("#### 請輸入家庭成員數")
         has_spouse = st.checkbox("是否有配偶（扣除額 553 萬）", value=False)
         spouse_deduction = SPOUSE_DEDUCTION_VALUE if has_spouse else 0
-        adult_children = st.number_input("直系血親卑親屬數（每人 56 萬）", min_value=0, max_value=10, value=0,
-                                         help="請輸入直系血親或卑親屬人數")
-        parents = st.number_input("父母數（每人 138 萬，最多 2 人）", min_value=0, max_value=2, value=0,
-                                  help="請輸入父母人數")
+        adult_children = st.number_input("直系血親卑親屬數（每人 56 萬）", min_value=0, max_value=10, 
+                                         value=0, help="請輸入直系血親或卑親屬人數")
+        parents = st.number_input("父母數（每人 138 萬，最多 2 人）", min_value=0, max_value=2, 
+                                  value=0, help="請輸入父母人數")
         max_disabled = max(1, adult_children + parents + (1 if has_spouse else 0))
-        disabled_people = st.number_input("重度以上身心障礙者數（每人 693 萬）", min_value=0, max_value=max_disabled, value=0,
-                                          help="請輸入重度以上身心障礙者人數")
-        other_dependents = st.number_input("受撫養之兄弟姊妹、祖父母數（每人 56 萬）", min_value=0, max_value=5, value=0,
-                                           help="請輸入兄弟姊妹或祖父母人數")
+        disabled_people = st.number_input("重度以上身心障礙者數（每人 693 萬）", min_value=0, max_value=max_disabled, 
+                                          value=0, help="請輸入重度以上身心障礙者人數")
+        other_dependents = st.number_input("受撫養之兄弟姊妹、祖父母數（每人 56 萬）", min_value=0, max_value=5, 
+                                           value=0, help="請輸入兄弟姊妹或祖父母人數")
     
     total_deductions = (spouse_deduction +
                         FUNERAL_EXPENSE +
@@ -274,11 +275,15 @@ def main():
         st.markdown(f"- 預估遺產稅：**{original_data['預估遺產稅']:,.2f} 萬元**")
         st.markdown(f"- 家人總共收到：**{original_data['家人總共收到']:,.2f} 萬元**")
         st.markdown("<h6 style='color: red;'>【保單規劃策略】</h6>", unsafe_allow_html=True)
-        st.markdown("<span class='explanation'>您可以自行調整保費與理賠金比例。</span>", unsafe_allow_html=True)
+        # Show premium input first
         default_premium = int(math.ceil(tax_due / 1.3))
         premium = st.number_input("請輸入保費（萬）", min_value=0, max_value=100000, value=default_premium, step=100, key="insurance_premium")
+        # Then show claim amount computed from premium and ratio
         premium_ratio = st.slider("請設定比例", min_value=1.0, max_value=3.0, value=1.3, step=0.1, key="insurance_ratio")
         claim_amount = premium * premium_ratio
+        st.markdown(f"**理賠金：** {claim_amount:,.2f} 萬元")
+        # Then the explanation text
+        st.markdown("<span class='explanation'>您可以自行調整保費與理賠金比例。</span>", unsafe_allow_html=True)
         if claim_amount < tax_due:
             st.error("警告：稅源不足！")
         insurance_results = simulate_insurance_strategy(
