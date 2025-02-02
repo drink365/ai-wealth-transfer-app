@@ -260,12 +260,13 @@ def main():
         st.table(df_tax.round(2))
     st.markdown("</div>", unsafe_allow_html=True)
     
-    # 於此設定風險偏好，用於整體策略建議
-    st.markdown("### 請選擇您的風險偏好")
-    risk_preference = st.radio("風險偏好", options=["保守", "中庸", "積極"], index=1)
-    basic_advice = generate_basic_advice(taxable_amount, tax_due, risk_preference)
+    # 插入分隔線
+    st.markdown("---")
     
+    # 家族傳承策略建議：先顯示標題，接著詢問風險偏好，再依選擇顯示建議
     st.markdown("## 家族傳承策略建議")
+    risk_preference = st.radio("請選擇您的風險偏好", options=["保守", "中庸", "積極"], index=1)
+    basic_advice = generate_basic_advice(taxable_amount, tax_due, risk_preference)
     st.text(basic_advice)
     
     # 使用 Tabs 呈現三種模擬策略
