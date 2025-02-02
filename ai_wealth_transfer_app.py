@@ -190,7 +190,7 @@ def main():
     
     st.selectbox("選擇適用地區", ["台灣（2025年起）"], index=0)
     
-    # Input: Assets and Family Information
+    # Input: Assets and Family Info
     with st.container():
         st.markdown("### 請輸入資產及家庭資訊", unsafe_allow_html=True)
         total_assets = st.number_input("遺產總額（萬）", min_value=1000, max_value=100000, value=5000, step=100,
@@ -267,7 +267,7 @@ def main():
     st.markdown(generate_basic_advice(taxable_amount, tax_due), unsafe_allow_html=True)
     
     # Use text hyperlinks as strategy options (no default selection)
-    query_params = st.query_params()
+    query_params = st.query_params  # Access property without parentheses
     selected = query_params.get("strategy", [None])[0]
     
     options = [("insurance", "保單規劃策略"), ("gift", "提前贈與策略"), ("diversified", "分散配置策略")]
