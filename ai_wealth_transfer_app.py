@@ -48,7 +48,7 @@ def calculate_estate_tax(total_assets, spouse_deduction, adult_children, other_d
 
 def generate_basic_advice(taxable_amount, tax_due):
     """
-    提供通用的家族傳承策略建議文案，將所有策略項目全部以藍色標示
+    提供通用的家族傳承策略建議文案，所有策略項目以藍色標示
     """
     advice = (
         "<span style='color: blue;'>1. 規劃保單</span>：透過保險預留稅源。\n\n"
@@ -200,10 +200,11 @@ def inject_custom_css():
     .strategy-button:hover {
         background-color: #B2EBF2;
     }
-    .strategy-button:active, .strategy-button.selected {
-        background-color: #80DEEA;
+    .strategy-button.selected {
+        /* 根據不同策略顯示不同顏色 */
+        background-color: #80DEEA !important;
     }
-    /* 強制按鈕容器不換行 */
+    /* 按鈕容器：保持按鈕並排，不換行 */
     .button-container {
         display: flex;
         flex-wrap: nowrap;
@@ -237,7 +238,6 @@ def main():
         disabled_people = st.number_input("重度以上身心障礙者數（每人 693 萬）", min_value=0, max_value=max_disabled, value=0, help="請輸入重度以上身心障礙者人數")
         other_dependents = st.number_input("受撫養之兄弟姊妹、祖父母數（每人 56 萬）", min_value=0, max_value=5, value=0, help="請輸入兄弟姊妹或祖父母人數")
     
-    # 檢查輸入數值是否合理
     total_deductions = (spouse_deduction +
                         FUNERAL_EXPENSE +
                         (disabled_people * DISABLED_DEDUCTION) +
@@ -248,7 +248,6 @@ def main():
         st.error("扣除額總和超過總遺產，請檢查輸入數值！")
         return
     
-    # 遺產稅計算
     try:
         taxable_amount, tax_due, _ = calculate_estate_tax(
             total_assets, spouse_deduction, adult_children, other_dependents, disabled_people, parents
@@ -296,19 +295,17 @@ def main():
     st.markdown("## 家族傳承策略建議")
     st.markdown(generate_basic_advice(taxable_amount, tax_due), unsafe_allow_html=True)
     
-    # 使用自訂按鈕呈現三個策略選項，並保持按鈕並排（不換行）
+    # 使用自訂按鈕呈現三個策略選項，並保持按鈕並排
     st.markdown("<div class='button-container'>", unsafe_allow_html=True)
-    if st.button("保單規劃策略", key="btn_insurance", help="點擊顯示保單規劃策略"):
-        st.session_state.selected_strategy = "insurance"
-    if st.button("提前贈與策略", key="btn_gift", help="點擊顯示提前贈與策略"):
-        st.session_state.selected_strategy = "gift"
-    if st.button("分散配置策略", key="btn_diversified", help="點擊顯示分散配置策略"):
-        st.session_state.selected_strategy = "diversified"
+    selected = st.radio("請選擇策略", options=["保單規劃策略", "提前贈與策略", "分散配置策略"], horizontal=True, key="strategy_select")
+    st.session_state.selected_strategy = selected
     st.markdown("</div>", unsafe_allow_html=True)
     
-    # 根據使用者選擇顯示對應內容
-    if "selected_strategy" in st.session_state:
-        if st.session_state.selected_strategy == "insurance":
+    # 根據選擇顯示內容，容器底色根據策略而定
+    if st.session_state.selected_strategy == "保單規劃策略":
+        container_color = "#C8E6C9"  # 淡綠色
+        with st.container():
+            st.markdown(f"<div style='background-color: {container_color}; padding: 10px; border-radius: 5px;'>", unsafe_allow_html=True)
             st.markdown("<h6 style='color: red;'>【原始情況】</h6>", unsafe_allow_html=True)
             st.markdown(f"- 遺產總額：**{original_data['遺產總額']:,.2f} 萬元**")
             st.markdown(f"- 預估遺產稅：**{original_data['預估遺產稅']:,.2f} 萬元**")
@@ -339,7 +336,12 @@ def main():
             st.markdown(f"- 理賠金：**{taxed['理賠金']:,.2f} 萬元**")
             st.markdown(f"- 家人總共收到：**{taxed['家人總共收到']:,.2f} 萬元**")
             st.markdown(f"- 規劃效果：<span class='effect'>較原始情況增加 {taxed['規劃效果']:,.2f} 萬元</span>", unsafe_allow_html=True)
-        elif st.session_state.selected_strategy == "gift":
+            st.markdown("</div>", unsafe_allow_html=True)
+            
+    elif st.session_state.selected_strategy == "提前贈與策略":
+        container_color = "#BBDEFB"  # 淡藍色
+        with st.container():
+            st.markdown(f"<div style='background-color: {container_color}; padding: 10px; border-radius: 5px;'>", unsafe_allow_html=True)
             st.markdown("<h6 style='color: red;'>【原始情況】</h6>", unsafe_allow_html=True)
             st.markdown(f"- 遺產總額：**{original_data['遺產總額']:,.2f} 萬元**")
             st.markdown(f"- 預估遺產稅：**{original_data['預估遺產稅']:,.2f} 萬元**")
@@ -357,7 +359,12 @@ def main():
             st.markdown(f"- 家人總共收到：**{after_gift['家人總共收到']:,.2f} 萬元**")
             effect_gift = gift_results["規劃效果"]
             st.markdown(f"- 規劃效果：<span class='effect'>較原始情況增加 {effect_gift['較原始情況增加']:,.2f} 萬元</span>", unsafe_allow_html=True)
-        elif st.session_state.selected_strategy == "diversified":
+            st.markdown("</div>", unsafe_allow_html=True)
+            
+    elif st.session_state.selected_strategy == "分散配置策略":
+        container_color = "#F8BBD0"  # 淡粉色
+        with st.container():
+            st.markdown(f"<div style='background-color: {container_color}; padding: 10px; border-radius: 5px;'>", unsafe_allow_html=True)
             st.markdown("<h6 style='color: red;'>【原始情況】</h6>", unsafe_allow_html=True)
             original_div = simulate_diversified_strategy(tax_due)["原始情況"]
             st.markdown(f"- 預估遺產稅：**{original_div['預估遺產稅']:,.2f} 萬元**")
@@ -366,6 +373,7 @@ def main():
             st.markdown(f"- 預估遺產稅：**{div_results['分散配置後']['預估遺產稅']:,.2f} 萬元**")
             effect_div = div_results["規劃效果"]
             st.markdown(f"- 規劃效果：<span class='effect'>較原始情況增加 {effect_div['較原始情況增加']:,.2f} 萬元</span>", unsafe_allow_html=True)
+            st.markdown("</div>", unsafe_allow_html=True)
     
     st.markdown("---")
     st.markdown("### 想了解更多？")
