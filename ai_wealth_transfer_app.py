@@ -52,39 +52,45 @@ def generate_basic_advice(taxable_amount, tax_due, risk_preference):
     """
     if risk_preference == "保守":
         advice = (
-            "建議您採取較保守的策略：\n"
-            "1. 規劃保單：利用保險工具降低課稅基數，確保家人穩定的現金流支持。\n"
-            "2. 提前贈與：分散多年度轉移資產，減少一次性稅負壓力。\n"
-            "3. 分散資產配置：透過穩健的資產分散，達到約10%稅率降低的效果。"
+            "【保守型策略】\n"
+            "您偏向保守，重視財富穩定傳承與風險管控。建議您在規劃中：\n"
+            "1. 保單規劃採取較保守的參數，雖節稅效益較有限，但能確保家人獲得穩定現金流支持；\n"
+            "2. 提前贈與方案以較低比例進行，以免過度調整造成家庭流動性風險；\n"
+            "3. 分散資產配置方面採取溫和調整，降低稅負但風險也隨之降低。"
         )
     elif risk_preference == "積極":
         advice = (
-            "針對積極型投資者，我們建議您：\n"
-            "1. 規劃保單：適度調整保險產品以達到最佳稅務規劃效果。\n"
-            "2. 提前贈與：利用年度免稅額度，靈活轉移資產，抓住資產配置的機會。\n"
-            "3. 分散資產配置：積極探索多元投資配置，進一步降低課稅金額。"
+            "【積極型策略】\n"
+            "您偏向積極，期望在節稅效益上獲得更大收益，並願意承擔較高風險。建議您在規劃中：\n"
+            "1. 保單規劃可考慮較高比例的調整，期望透過更積極的方案降低稅負；\n"
+            "2. 提前贈與方案可採用較高比例轉移財富，以爭取更多節稅空間；\n"
+            "3. 分散資產配置上，追求較大幅度的稅率下降，但需注意市場風險的管控。"
         )
-    else:
+    else:  # 中庸
         advice = (
-            "基於您的中庸風險偏好，建議您：\n"
-            "1. 規劃保單：透過購買適當的保險產品，達到降低課稅基數的效果。\n"
-            "2. 提前贈與：利用每年免稅額度，逐步轉移財富，降低遺產總額。\n"
-            "3. 分散資產配置：假設分散配置可使稅率下降10%，達到稅額減少的效果。"
+            "【中庸型策略】\n"
+            "您的風險偏好屬於中庸，兼顧穩健與成長。建議您在規劃中：\n"
+            "1. 保單規劃採取中等參數，既能降低稅負，又能保障家人現金流；\n"
+            "2. 提前贈與方案採取適中比例，逐步實現財富轉移；\n"
+            "3. 分散資產配置上，追求合理的稅率下降效果，達到資產保值與節稅的平衡。"
         )
     return advice
 
-def simulate_insurance_strategy_custom(total_assets, spouse_deduction, adult_children, other_dependents, disabled_people, parents, premium_ratio):
+def simulate_insurance_strategy_custom(total_assets, spouse_deduction, adult_children, other_dependents, disabled_people, parents, premium_ratio, risk_preference):
     """
     模擬保單策略：
-    - 讓用戶自訂保費比例（假設保費 = 保險理賠金 ÷ premium_ratio）
+    - 根據風險偏好調整假設保險理賠金（乘上風險 multiplier）
     - 模擬兩種情境：未被實質課稅與被實質課稅
     """
+    # 根據風險偏好設定 multiplier
+    risk_multiplier = {"保守": 0.95, "中庸": 1.0, "積極": 1.05}[risk_preference]
+    
     # 原始情況
     _, tax_no_insurance, _ = calculate_estate_tax(total_assets, spouse_deduction, adult_children, other_dependents, disabled_people, parents)
     net_no_insurance = total_assets - tax_no_insurance
 
-    # 假設保險方案計算
-    assumed_payout = round(math.ceil(tax_no_insurance / 100) * 100, 2)
+    # 調整後的假設保險理賠金
+    assumed_payout = round(math.ceil(tax_no_insurance / 100) * 100 * risk_multiplier, 2)
     assumed_premium = round(assumed_payout / premium_ratio, 2)
 
     # 模擬未被實質課稅：保險理賠金不參與課稅
@@ -120,13 +126,14 @@ def simulate_insurance_strategy_custom(total_assets, spouse_deduction, adult_chi
         }
     }
 
-def simulate_gift_strategy(total_assets, spouse_deduction, adult_children, other_dependents, disabled_people, parents, years):
+def simulate_gift_strategy(total_assets, spouse_deduction, adult_children, other_dependents, disabled_people, parents, years, risk_preference):
     """
     模擬提前贈與策略：
-    每年贈與244萬免稅額度，計算總贈與金額及規劃後家人最終收到的資產
+    - 根據風險偏好調整總贈與金額（乘上gift_multiplier）
     """
+    gift_multiplier = {"保守": 0.95, "中庸": 1.0, "積極": 1.05}[risk_preference]
     annual_gift_exemption = 244
-    total_gift = years * annual_gift_exemption
+    total_gift = years * annual_gift_exemption * gift_multiplier
     simulated_total_assets = max(total_assets - total_gift, 0)
     _, tax_sim, _ = calculate_estate_tax(simulated_total_assets, spouse_deduction, adult_children, other_dependents, disabled_people, parents)
     net_after = round((simulated_total_assets - tax_sim) + total_gift, 2)
@@ -152,12 +159,13 @@ def simulate_gift_strategy(total_assets, spouse_deduction, adult_children, other
         }
     }
 
-def simulate_diversified_strategy(tax_due):
+def simulate_diversified_strategy(tax_due, risk_preference):
     """
     模擬分散資產配置策略：
-    假設透過分散配置，可使稅率下降10%，稅額降至約90%，並計算節省數額與百分比
+    - 根據風險偏好調整目標稅率因子
     """
-    simulated_tax_due = round(tax_due * 0.9, 2)
+    tax_factor = {"保守": 0.93, "中庸": 0.90, "積極": 0.87}[risk_preference]
+    simulated_tax_due = round(tax_due * tax_factor, 2)
     saved = round(tax_due - simulated_tax_due, 2)
     percent_saved = round((saved / tax_due) * 100, 2) if tax_due else 0
     return {
@@ -263,28 +271,27 @@ def main():
     # 插入分隔線
     st.markdown("---")
     
-    # 家族傳承策略建議：標題先行，再詢問風險偏好
+    # 家族傳承策略建議：先顯示標題，再讓用戶選擇風險偏好（初始不預設）
     st.markdown("## 家族傳承策略建議")
-    # 風險偏好不預設，第一個選項留空
     risk_preference = st.radio("請選擇您的風險偏好", options=["", "保守", "中庸", "積極"], index=0)
     
-    # 只有當用戶選擇了風險偏好後，才顯示建議與下方策略模擬
     if risk_preference == "":
         st.info("請先選擇您的風險偏好以顯示策略建議。")
     else:
+        # 顯示策略建議文字
         basic_advice = generate_basic_advice(taxable_amount, tax_due, risk_preference)
         st.text(basic_advice)
         
-        # 使用 Tabs 呈現三種模擬策略
+        # 使用 Tabs 呈現三種模擬策略，並傳入風險偏好參數
         tabs = st.tabs(["保單規劃策略", "提前贈與策略", "分散資產配置策略"])
         
-        # 保單規劃策略模擬（個人化設定移至此處）
+        # 保單規劃策略模擬
         with tabs[0]:
             st.markdown("#### 保單規劃策略說明", unsafe_allow_html=True)
-            st.markdown("<span class='explanation'>保單規劃策略模擬：您可透過下方調整保費與理賠金比例（假設保費 = 理賠金 ÷ 此比例），觀察不同情境下的稅務規劃效果。</span>", unsafe_allow_html=True)
+            st.markdown("<span class='explanation'>您可透過下方調整保費與理賠金比例（假設保費 = 理賠金 ÷ 此比例），觀察不同情境下的稅務規劃效果。</span>", unsafe_allow_html=True)
             premium_ratio = st.slider("請設定保費與理賠金比例", min_value=1.0, max_value=3.0, value=1.5, step=0.1, help="根據個人情況調整，較低比例表示保費較低")
             insurance_results = simulate_insurance_strategy_custom(
-                total_assets, spouse_deduction, adult_children, other_dependents, disabled_people, parents, premium_ratio
+                total_assets, spouse_deduction, adult_children, other_dependents, disabled_people, parents, premium_ratio, risk_preference
             )
             st.markdown(f"**假設保費比例：** {premium_ratio}")
             st.markdown("**【原始情況】**")
@@ -312,10 +319,10 @@ def main():
         # 提前贈與策略模擬
         with tabs[1]:
             st.markdown("#### 提前贈與策略說明", unsafe_allow_html=True)
-            st.markdown("<span class='explanation'>提前贈與策略模擬：每年利用244萬的免稅贈與額度，逐年轉移資產，降低遺產總額。</span>", unsafe_allow_html=True)
+            st.markdown("<span class='explanation'>每年利用244萬的免稅贈與額度，逐年轉移資產，降低遺產總額。</span>", unsafe_allow_html=True)
             years = st.slider("設定提前贈與年數", 1, 10, 3, 1)
             gift_results = simulate_gift_strategy(
-                total_assets, spouse_deduction, adult_children, other_dependents, disabled_people, parents, years
+                total_assets, spouse_deduction, adult_children, other_dependents, disabled_people, parents, years, risk_preference
             )
             st.markdown("**【原始情況】**")
             original_gift = gift_results["原始情況"]
@@ -335,8 +342,8 @@ def main():
         # 分散資產配置策略模擬
         with tabs[2]:
             st.markdown("#### 分散資產配置策略說明", unsafe_allow_html=True)
-            st.markdown("<span class='explanation'>分散資產配置策略模擬：假設透過分散配置使稅率下降10%，降低最終稅額。</span>", unsafe_allow_html=True)
-            div_results = simulate_diversified_strategy(tax_due)
+            st.markdown("<span class='explanation'>假設透過分散配置使稅率下降，可降低最終稅額。</span>", unsafe_allow_html=True)
+            div_results = simulate_diversified_strategy(tax_due, risk_preference)
             st.markdown("**【原始情況】**")
             st.markdown(f"- 預估稅額：**{div_results['原始情況']['預估稅額']:,.2f} 萬元**")
             st.markdown("**【分散資產配置後】**")
