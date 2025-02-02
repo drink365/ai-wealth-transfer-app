@@ -2,28 +2,32 @@ import streamlit as st
 import pandas as pd
 import math
 
-# === 常數設定 ===
-EXEMPT_AMOUNT = 1333          # 免稅額（萬）
-FUNERAL_EXPENSE = 138         # 喪葬費扣除額（萬）
-SPOUSE_DEDUCTION_VALUE = 553  # 配偶扣除額（萬）
-ADULT_CHILD_DEDUCTION = 56    # 直系血親卑親屬扣除額（萬）
-PARENTS_DEDUCTION = 138       # 父母扣除額（萬）
-DISABLED_DEDUCTION = 693      # 重度以上身心障礙扣除額（萬）
-OTHER_DEPENDENTS_DEDUCTION = 56  # 其他撫養扣除額（萬）
+def set_config():
+    # Must be the first Streamlit command to avoid the StreamlitSetPageConfigMustBeFirstCommandError.
+    st.set_page_config(page_title="遺產稅試算工具", layout="wide")
 
-# 台灣 2025 年累進稅率結構 (上限, 稅率)
+# === Constants ===
+EXEMPT_AMOUNT = 1333          # Exemption (in 10,000s)
+FUNERAL_EXPENSE = 138         # Funeral expenses (in 10,000s)
+SPOUSE_DEDUCTION_VALUE = 553  # Spouse deduction (in 10,000s)
+ADULT_CHILD_DEDUCTION = 56    # Deduction per direct descendant/ascendant (in 10,000s)
+PARENTS_DEDUCTION = 138       # Parents deduction (in 10,000s)
+DISABLED_DEDUCTION = 693      # Deduction for severe disability (in 10,000s)
+OTHER_DEPENDENTS_DEDUCTION = 56  # Deduction for other dependents (in 10,000s)
+
+# Taiwan's progressive tax brackets for 2025 (upper limit, rate)
 TAX_BRACKETS = [
     (5621, 0.1),
     (11242, 0.15),
     (float('inf'), 0.2)
 ]
 
-# === 核心計算邏輯 ===
+# === Core Calculation Logic ===
 @st.cache_data
 def calculate_estate_tax(total_assets, spouse_deduction, adult_children, other_dependents, disabled_people, parents):
     """
-    計算遺產稅
-    回傳值：(課稅遺產淨額, 預估遺產稅, 總扣除額)
+    Calculate estate tax.
+    Returns a tuple: (Taxable Estate, Estimated Tax, Total Deductions)
     """
     deductions = (
         spouse_deduction +
@@ -34,7 +38,7 @@ def calculate_estate_tax(total_assets, spouse_deduction, adult_children, other_d
         (parents * PARENTS_DEDUCTION)
     )
     if total_assets < EXEMPT_AMOUNT + deductions:
-        raise ValueError("扣除額總和超過總遺產，請檢查輸入數值！")
+        raise ValueError("Total deductions exceed the total estate. Please check your inputs!")
     
     taxable_amount = int(max(0, total_assets - EXEMPT_AMOUNT - deductions))
     tax_due = 0
@@ -48,7 +52,7 @@ def calculate_estate_tax(total_assets, spouse_deduction, adult_children, other_d
 
 def generate_basic_advice(taxable_amount, tax_due):
     """
-    提供家族傳承策略建議文案，所有策略項目以藍色標示
+    Provides basic estate planning advice.
     """
     advice = (
         "<span style='color: blue;'>1. 規劃保單</span>：透過保險預留稅源。\n\n"
@@ -59,11 +63,11 @@ def generate_basic_advice(taxable_amount, tax_due):
 
 def simulate_insurance_strategy(total_assets, spouse_deduction, adult_children, other_dependents, disabled_people, parents, premium_ratio, premium):
     """
-    模擬保單策略：
-      - 用戶輸入保費（萬）及理賠金比例（預設1.3，表示理賠金 = 保費 × 1.3）
-      - 模擬兩種情境：
-          ① 未被實質課稅：理賠金不參與遺產稅計算
-          ② 被實質課稅：理賠金納入遺產稅計算
+    Simulates the insurance strategy:
+      - User enters premium (in 10,000s) and the claim ratio (default 1.3, meaning Claim Amount = Premium × 1.3).
+      - Two scenarios are simulated:
+          ① Not actually taxed: Claim amount is not included in estate.
+          ② Actually taxed: Claim amount is included.
     """
     _, tax_no_insurance, _ = calculate_estate_tax(
         total_assets, spouse_deduction, adult_children, other_dependents, disabled_people, parents
@@ -105,8 +109,8 @@ def simulate_insurance_strategy(total_assets, spouse_deduction, adult_children, 
 
 def simulate_gift_strategy(total_assets, spouse_deduction, adult_children, other_dependents, disabled_people, parents, years):
     """
-    模擬提前贈與策略：
-      - 每年贈與244萬免稅額度，計算總贈與金額及規劃後家人最終收到的資產。
+    Simulates the gift strategy:
+      - Assumes an annual tax-free gift limit of 244 (in 10,000s) and calculates the resulting estate.
     """
     annual_gift_exemption = 244
     total_gift = years * annual_gift_exemption
@@ -140,8 +144,8 @@ def simulate_gift_strategy(total_assets, spouse_deduction, adult_children, other
 
 def simulate_diversified_strategy(tax_due):
     """
-    模擬分散配置策略：
-      - 假設透過合理資產配置，使最終遺產稅降至原稅額的90%。
+    Simulates the diversified (分散配置) strategy:
+      - Assumes that with proper asset allocation, the final estate tax can be reduced to 90% of the original.
     """
     tax_factor = 0.90
     simulated_tax_due = round(tax_due * tax_factor, 2)
@@ -163,7 +167,7 @@ def simulate_diversified_strategy(tax_due):
 def inject_custom_css():
     custom_css = """
     <style>
-    /* 自訂連結樣式：使策略選項以文字超連結形式顯示 */
+    /* Customize the strategy link style */
     .strategy-link {
         font-size: 20px;
         color: blue;
@@ -178,18 +182,16 @@ def inject_custom_css():
     """
     st.markdown(custom_css, unsafe_allow_html=True)
 
-# 取得 query parameters 判斷是否有選擇策略
-query_params = st.experimental_get_query_params()
-selected_strategy = query_params.get("strategy", [None])[0]
+# Use st.set_page_config as the very first Streamlit command
+set_config()
 
 def main():
-    st.set_page_config(page_title="遺產稅試算工具", layout="wide")
-    inject_custom_css()
+    # Now st.set_page_config has already been called at the top.
     st.markdown("<h1 class='main-header'>遺產稅試算工具</h1>", unsafe_allow_html=True)
     
     st.selectbox("選擇適用地區", ["台灣（2025年起）"], index=0)
     
-    # 輸入區：資產與家庭資訊
+    # Input area: Assets and Family Information
     with st.container():
         st.markdown("### 請輸入資產及家庭資訊", unsafe_allow_html=True)
         total_assets = st.number_input("遺產總額（萬）", min_value=1000, max_value=100000, value=5000, step=100, help="請輸入您的總遺產金額（單位：萬）")
@@ -260,23 +262,22 @@ def main():
     st.markdown("## 家族傳承策略建議")
     st.markdown(generate_basic_advice(taxable_amount, tax_due), unsafe_allow_html=True)
     
-    # 使用文字超連結作為策略選項，並排顯示
-    # 取得目前選擇的策略（來自 query parameters）
-    query_params = st.experimental_get_query_params()
+    # Use text links as strategy options
+    query_params = st.query_params()
     selected = query_params.get("strategy", [None])[0]
     
-    # 建立三個超連結，選取的文字加上底線
-    strategy_links = []
+    # Build strategy links with underline for the selected one
     options = [("insurance", "保單規劃策略"), ("gift", "提前贈與策略"), ("diversified", "分散配置策略")]
+    links = []
     for key, text in options:
         if selected == key:
             link = f"<a href='?strategy={key}' class='strategy-link selected'>{text}</a>"
         else:
             link = f"<a href='?strategy={key}' class='strategy-link'>{text}</a>"
-        strategy_links.append(link)
-    st.markdown(" | ".join(strategy_links), unsafe_allow_html=True)
+        links.append(link)
+    st.markdown(" | ".join(links), unsafe_allow_html=True)
     
-    # 根據選擇顯示對應內容
+    # Display corresponding content based on the selected strategy
     if selected == "insurance":
         st.markdown("<h6 style='color: red;'>【原始情況】</h6>", unsafe_allow_html=True)
         st.markdown(f"- 遺產總額：**{original_data['遺產總額']:,.2f} 萬元**")
@@ -308,6 +309,7 @@ def main():
         st.markdown(f"- 理賠金：**{taxed['理賠金']:,.2f} 萬元**")
         st.markdown(f"- 家人總共收到：**{taxed['家人總共收到']:,.2f} 萬元**")
         st.markdown(f"- 規劃效果：<span class='effect'>較原始情況增加 {taxed['規劃效果']:,.2f} 萬元</span>", unsafe_allow_html=True)
+        
     elif selected == "gift":
         st.markdown("<h6 style='color: red;'>【原始情況】</h6>", unsafe_allow_html=True)
         st.markdown(f"- 遺產總額：**{original_data['遺產總額']:,.2f} 萬元**")
@@ -326,6 +328,7 @@ def main():
         st.markdown(f"- 家人總共收到：**{after_gift['家人總共收到']:,.2f} 萬元**")
         effect_gift = gift_results["規劃效果"]
         st.markdown(f"- 規劃效果：<span class='effect'>較原始情況增加 {effect_gift['較原始情況增加']:,.2f} 萬元</span>", unsafe_allow_html=True)
+        
     elif selected == "diversified":
         st.markdown("<h6 style='color: red;'>【原始情況】</h6>", unsafe_allow_html=True)
         original_div = simulate_diversified_strategy(tax_due)["原始情況"]
