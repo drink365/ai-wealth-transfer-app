@@ -53,20 +53,20 @@ def generate_basic_advice(taxable_amount, tax_due):
     advice = (
         "建議您考慮以下策略：\n"
         "1. 規劃保單：透過保險產品預留稅源，確保家人獲得足夠現金流支持。\n"
-        "   ※ 若保險保額不足以支付預估遺產稅，請調整保險保額以確保預留足夠稅源。\n"
+        "   ※ 若理賠金不足以支付預估遺產稅，請調整保費或理賠金比例，以確保預留足夠稅源。\n"
         "2. 提前贈與：利用每年244萬的免稅額度，逐年轉移財富，降低未來稅負；\n"
         "3. 分散資產配置：透過合理的資產配置，降低整體稅率（假設可降至90%），達到節稅目的。"
     )
     return advice
 
-def simulate_insurance_strategy(total_assets, spouse_deduction, adult_children, other_dependents, disabled_people, parents, premium_ratio, insurance_coverage):
+def simulate_insurance_strategy(total_assets, spouse_deduction, adult_children, other_dependents, disabled_people, parents, premium_ratio, premium):
     """
     模擬保單策略：
-    - 用戶自行設定保險保額（理賠金）與保費比例（預設為1.5）
-    - 計算出保費 = 保險保額 ÷ premium_ratio
+    - 用戶自行輸入保費與理賠金比例（預設為1.5，表示理賠金 = 保費 × 1.5）
+    - 根據輸入的保費計算出理賠金
     - 模擬兩種情境：
-       ① 未被實質課稅：保險理賠金不參與遺產稅計算
-       ② 被實質課稅：保險理賠金納入遺產稅計算
+       ① 未被實質課稅：理賠金不參與遺產稅計算
+       ② 被實質課稅：理賠金納入遺產稅計算
     """
     # 原始情況（無保險規劃）
     _, tax_no_insurance, _ = calculate_estate_tax(
@@ -74,18 +74,18 @@ def simulate_insurance_strategy(total_assets, spouse_deduction, adult_children, 
     )
     net_no_insurance = total_assets - tax_no_insurance
 
-    premium = round(insurance_coverage / premium_ratio, 2)
+    claim_amount = round(premium * premium_ratio, 2)
 
-    # 模擬未被實質課稅：保險理賠金不參與課稅
+    # 模擬未被實質課稅：理賠金不參與課稅
     new_total_assets = total_assets - premium
     _, tax_new, _ = calculate_estate_tax(
         new_total_assets, spouse_deduction, adult_children, other_dependents, disabled_people, parents
     )
-    net_not_taxed = round((new_total_assets - tax_new) + insurance_coverage, 2)
+    net_not_taxed = round((new_total_assets - tax_new) + claim_amount, 2)
     effect_not_taxed = round(net_not_taxed - net_no_insurance, 2)
 
-    # 模擬被實質課稅：保險理賠金納入遺產稅計算
-    effective_estate = total_assets - premium + insurance_coverage
+    # 模擬被實質課稅：理賠金納入遺產稅計算
+    effective_estate = total_assets - premium + claim_amount
     _, tax_effective, _ = calculate_estate_tax(
         effective_estate, spouse_deduction, adult_children, other_dependents, disabled_people, parents
     )
@@ -99,14 +99,14 @@ def simulate_insurance_strategy(total_assets, spouse_deduction, adult_children, 
             "家人總共收到": net_no_insurance
         },
         "有規劃保單 (未被實質課稅)": {
-            "保險保額": insurance_coverage,
+            "理賠金": claim_amount,
             "保費": premium,
             "預估稅額": tax_new,
             "家人總共收到": net_not_taxed,
             "規劃效果": effect_not_taxed
         },
         "有規劃保單 (被實質課稅)": {
-            "保險保額": insurance_coverage,
+            "理賠金": claim_amount,
             "保費": premium,
             "家人總共收到": net_taxed,
             "規劃效果": effect_taxed
@@ -267,21 +267,22 @@ def main():
     # 使用 Tabs 呈現三種模擬策略
     tabs = st.tabs(["保單規劃策略", "提前贈與策略", "分散資產配置策略"])
     
-    # 保單規劃策略模擬
+    # 保單規劃策略模擬：改為輸入保費，計算理賠金 = 保費 × 理賠金比例
     with tabs[0]:
         st.markdown("#### 保單規劃策略說明", unsafe_allow_html=True)
-        st.markdown("<span class='explanation'>請輸入您希望購買的保險保額（單位：萬），以及保費與理賠金比例（預設為1.5，表示保費 = 保險保額 ÷ 1.5）。系統將依此計算保費，並模擬兩種情境下的家族傳承效果。</span>", unsafe_allow_html=True)
-        # 將預設保險保額設為稅額（並轉換成整數以確保型態一致）
-        insurance_coverage = st.number_input("請輸入您希望購買的保險保額（萬）", min_value=0, max_value=100000, value=int(tax_due), step=100)
-        premium_ratio = st.slider("請設定保費與理賠金比例", min_value=1.0, max_value=3.0, value=1.5, step=0.1, help="較低比例表示保費較低")
-        
-        # 如果保險保額不足以支付預估遺產稅，則以紅色警告提示
-        if insurance_coverage < tax_due:
-            st.error("警告：所購買的保險保額不足以支付預估遺產稅，請調整保險保額！")
+        st.markdown("<span class='explanation'>請輸入您願意支付的保費（單位：萬），以及保費與理賠金比例（預設為1.5，表示理賠金 = 保費 × 1.5）。系統將依此模擬兩種情境下的家族傳承效果。</span>", unsafe_allow_html=True)
+        premium = st.number_input("請輸入保費（萬）", min_value=0, max_value=100000, value=0, step=100)
+        premium_ratio = st.slider("請設定保費與理賠金比例", min_value=1.0, max_value=3.0, value=1.5, step=0.1, help="例如，1.5表示理賠金 = 保費 × 1.5")
+        claim_amount = premium * premium_ratio
+
+        # 如果計算出的理賠金不足以支付預估遺產稅，則以紅色警告提示
+        if claim_amount < tax_due:
+            st.error("警告：根據您輸入的保費與理賠金比例，計算出的理賠金不足以支付預估遺產稅，請調整保費或比例！")
         
         insurance_results = simulate_insurance_strategy(
-            total_assets, spouse_deduction, adult_children, other_dependents, disabled_people, parents, premium_ratio, insurance_coverage
+            total_assets, spouse_deduction, adult_children, other_dependents, disabled_people, parents, premium_ratio, premium
         )
+        st.markdown(f"**計算出的理賠金：** {claim_amount:,.2f} 萬元")
         st.markdown(f"**保費：** {insurance_results['有規劃保單 (未被實質課稅)']['保費']:,.2f} 萬元")
         st.markdown("**【原始情況】**")
         original = insurance_results["原始情況"]
@@ -290,14 +291,14 @@ def main():
         st.markdown(f"- 家人總共收到：**{original['家人總共收到']:,.2f} 萬元**")
         st.markdown("**【有規劃保單（未被實質課稅）】**")
         not_taxed = insurance_results["有規劃保單 (未被實質課稅)"]
-        st.markdown(f"- 保險保額：**{not_taxed['保險保額']:,.2f} 萬元**")
+        st.markdown(f"- 理賠金：**{not_taxed['理賠金']:,.2f} 萬元**")
         st.markdown(f"- 保費：**{not_taxed['保費']:,.2f} 萬元**")
         st.markdown(f"- 預估稅額：**{not_taxed['預估稅額']:,.2f} 萬元**")
         st.markdown(f"- 家人總共收到：**{not_taxed['家人總共收到']:,.2f} 萬元**")
         st.markdown(f"- 規劃效果：<span class='effect'>較原始情況增加 {not_taxed['規劃效果']:,.2f} 萬元</span>", unsafe_allow_html=True)
         st.markdown("**【有規劃保單（被實質課稅）】**")
         taxed = insurance_results["有規劃保單 (被實質課稅)"]
-        st.markdown(f"- 保險保額：**{taxed['保險保額']:,.2f} 萬元**")
+        st.markdown(f"- 理賠金：**{taxed['理賠金']:,.2f} 萬元**")
         st.markdown(f"- 保費：**{taxed['保費']:,.2f} 萬元**")
         st.markdown(f"- 家人總共收到：**{taxed['家人總共收到']:,.2f} 萬元**")
         st.markdown(f"- 規劃效果：<span class='effect'>較原始情況增加 {taxed['規劃效果']:,.2f} 萬元</span>", unsafe_allow_html=True)
@@ -337,7 +338,7 @@ def main():
         effect_div = div_results["規劃效果"]
         st.markdown(f"- 規劃效果：<span class='effect'>較原始情況增加 {effect_div['較原始情況增加']:,.2f} 萬元</span>", unsafe_allow_html=True)
     
-    # 行銷導引區塊：引導用戶前往永傳家族辦公室官網
+    # 行銷導引區塊
     st.markdown("---")
     st.markdown("### 想了解更多？")
     st.markdown("歡迎前往 **永傳家族辦公室**，我們提供專業的家族傳承與財富規劃服務。")
