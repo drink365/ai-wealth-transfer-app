@@ -185,9 +185,8 @@ def inject_custom_css():
     .explanation {
         color: #0077CC;
     }
-    /* 自訂按鈕樣式：並排顯示，淡底色，被按下時改色 */
+    /* 自訂策略按鈕樣式 */
     .strategy-button {
-        display: inline-block;
         background-color: #E0F7FA;
         font-size: 20px;
         color: black;
@@ -204,9 +203,18 @@ def inject_custom_css():
     .strategy-button:active, .strategy-button.selected {
         background-color: #80DEEA;
     }
+    /* 強制按鈕容器不換行 */
+    .button-container {
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+    }
     </style>
     """
     st.markdown(custom_css, unsafe_allow_html=True)
+
+if "selected_strategy" not in st.session_state:
+    st.session_state.selected_strategy = None
 
 def main():
     st.set_page_config(page_title="遺產稅試算工具", layout="wide")
@@ -288,16 +296,17 @@ def main():
     st.markdown("## 家族傳承策略建議")
     st.markdown(generate_basic_advice(taxable_amount, tax_due), unsafe_allow_html=True)
     
-    # 使用自訂按鈕實作三個策略選項（並排）
-    col_btn1, col_btn2, col_btn3 = st.columns(3)
-    if col_btn1.button("保單規劃策略"):
+    # 使用自訂按鈕呈現三個策略選項，並保持按鈕並排（不換行）
+    st.markdown("<div class='button-container'>", unsafe_allow_html=True)
+    if st.button("保單規劃策略", key="btn_insurance", help="點擊顯示保單規劃策略"):
         st.session_state.selected_strategy = "insurance"
-    if col_btn2.button("提前贈與策略"):
+    if st.button("提前贈與策略", key="btn_gift", help="點擊顯示提前贈與策略"):
         st.session_state.selected_strategy = "gift"
-    if col_btn3.button("分散配置策略"):
+    if st.button("分散配置策略", key="btn_diversified", help="點擊顯示分散配置策略"):
         st.session_state.selected_strategy = "diversified"
+    st.markdown("</div>", unsafe_allow_html=True)
     
-    # 根據選擇顯示內容
+    # 根據使用者選擇顯示對應內容
     if "selected_strategy" in st.session_state:
         if st.session_state.selected_strategy == "insurance":
             st.markdown("<h6 style='color: red;'>【原始情況】</h6>", unsafe_allow_html=True)
