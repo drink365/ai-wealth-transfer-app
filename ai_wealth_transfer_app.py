@@ -3,8 +3,11 @@ import pandas as pd
 import math
 
 def set_config():
-    # Must be the very first Streamlit command.
+    # This must be the very first Streamlit command.
     st.set_page_config(page_title="遺產稅試算工具", layout="wide")
+
+# Call set_config() immediately so that it is the first Streamlit command
+set_config()
 
 # === Constants ===
 EXEMPT_AMOUNT = 1333          # Exemption (in 10,000s)
@@ -66,7 +69,7 @@ def simulate_insurance_strategy(total_assets, spouse_deduction, adult_children, 
     Simulates the insurance strategy:
       - User inputs premium (in 10,000s) and claim ratio (default 1.3, meaning Claim Amount = Premium × 1.3).
       - Two scenarios are simulated:
-          ① Not actually taxed: Claim amount is not included in estate.
+          ① Not actually taxed: Claim amount is not included in the estate.
           ② Actually taxed: Claim amount is included.
     """
     _, tax_no_insurance, _ = calculate_estate_tax(
@@ -182,15 +185,12 @@ def inject_custom_css():
     """
     st.markdown(custom_css, unsafe_allow_html=True)
 
-# Use st.set_page_config as the first command
-set_config()
-
 def main():
     st.markdown("<h1 class='main-header'>遺產稅試算工具</h1>", unsafe_allow_html=True)
     
     st.selectbox("選擇適用地區", ["台灣（2025年起）"], index=0)
     
-    # Input: Assets & Family Info
+    # Input: Assets and Family Information
     with st.container():
         st.markdown("### 請輸入資產及家庭資訊", unsafe_allow_html=True)
         total_assets = st.number_input("遺產總額（萬）", min_value=1000, max_value=100000, value=5000, step=100,
@@ -267,7 +267,7 @@ def main():
     st.markdown(generate_basic_advice(taxable_amount, tax_due), unsafe_allow_html=True)
     
     # Use text hyperlinks as strategy options (no default selection)
-    query_params = dict(st.query_params())
+    query_params = st.query_params()
     selected = query_params.get("strategy", [None])[0]
     
     options = [("insurance", "保單規劃策略"), ("gift", "提前贈與策略"), ("diversified", "分散配置策略")]
