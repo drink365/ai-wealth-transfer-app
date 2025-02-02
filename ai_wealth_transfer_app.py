@@ -179,6 +179,10 @@ div[data-baseweb="radio"] label {
     color: green;
     font-weight: bold;
 }
+.explanation {
+    font-size: 18px;
+    color: #0077CC;
+}
 </style>
 """
 st.markdown(custom_css, unsafe_allow_html=True)
@@ -275,22 +279,20 @@ def main():
         st.markdown(f"- 預估遺產稅：**{original_data['預估遺產稅']:,.2f} 萬元**")
         st.markdown(f"- 家人總共收到：**{original_data['家人總共收到']:,.2f} 萬元**")
         st.markdown("<h6 style='color: red;'>【保單規劃策略】</h6>", unsafe_allow_html=True)
-        # Show premium input first
+        # First, display the premium input and ratio slider, then show the computed claim amount
         default_premium = int(math.ceil(tax_due / 1.3))
         premium = st.number_input("請輸入保費（萬）", min_value=0, max_value=100000, value=default_premium, step=100, key="insurance_premium")
-        # Then show claim amount computed from premium and ratio
         premium_ratio = st.slider("請設定比例", min_value=1.0, max_value=3.0, value=1.3, step=0.1, key="insurance_ratio")
         claim_amount = premium * premium_ratio
+        st.markdown(f"**保費：** {premium:,.2f} 萬元")
         st.markdown(f"**理賠金：** {claim_amount:,.2f} 萬元")
-        # Then the explanation text
+        # Then display the explanation text
         st.markdown("<span class='explanation'>您可以自行調整保費與理賠金比例。</span>", unsafe_allow_html=True)
         if claim_amount < tax_due:
             st.error("警告：稅源不足！")
         insurance_results = simulate_insurance_strategy(
             total_assets, spouse_deduction, adult_children, other_dependents, disabled_people, parents, premium_ratio, premium
         )
-        st.markdown(f"**保費：** {insurance_results['有規劃保單 (未被實質課稅)']['保費']:,.2f} 萬元")
-        st.markdown(f"**理賠金：** {insurance_results['有規劃保單 (未被實質課稅)']['理賠金']:,.2f} 萬元")
         st.markdown("<h6 style='color: red;'>【有規劃保單（未被實質課稅）】</h6>", unsafe_allow_html=True)
         not_taxed = insurance_results["有規劃保單 (未被實質課稅)"]
         st.markdown(f"- 保費：**{not_taxed['保費']:,.2f} 萬元**")
