@@ -190,7 +190,7 @@ def main():
     
     st.selectbox("選擇適用地區", ["台灣（2025年起）"], index=0)
     
-    # Input: Assets and Family Information
+    # Input Area: Assets and Family Info
     with st.container():
         st.markdown("### 請輸入資產及家庭資訊", unsafe_allow_html=True)
         total_assets = st.number_input("遺產總額（萬）", min_value=1000, max_value=100000, value=5000, step=100,
@@ -266,7 +266,7 @@ def main():
     st.markdown("## 家族傳承策略建議")
     st.markdown(generate_basic_advice(taxable_amount, tax_due), unsafe_allow_html=True)
     
-    # Use text hyperlinks as strategy options (no default selection)
+    # Use plain text hyperlinks as strategy options.
     query_params = st.query_params  # Access query parameters as a property
     selected = query_params.get("strategy", [None])[0]
     
@@ -274,9 +274,9 @@ def main():
     links = []
     for key, text in options:
         if selected == key:
-            link = f"<a href='?strategy={key}' class='strategy-link selected'>{text}</a>"
+            link = f"<a href='?strategy={key}' target='_self' class='strategy-link selected'>{text}</a>"
         else:
-            link = f"<a href='?strategy={key}' class='strategy-link'>{text}</a>"
+            link = f"<a href='?strategy={key}' target='_self' class='strategy-link'>{text}</a>"
         links.append(link)
     st.markdown(" | ".join(links), unsafe_allow_html=True)
     
