@@ -185,7 +185,7 @@ def inject_custom_css():
     .explanation {
         color: #0077CC;
     }
-    /* 自訂策略按鈕樣式 */
+    /* 自訂策略按鈕樣式：有底色的文字按鈕，不預設選項 */
     .strategy-button {
         background-color: #E0F7FA;
         font-size: 20px;
@@ -200,9 +200,8 @@ def inject_custom_css():
     .strategy-button:hover {
         background-color: #B2EBF2;
     }
-    .strategy-button.selected {
-        /* 根據不同策略顯示不同顏色 */
-        background-color: #80DEEA !important;
+    .strategy-button:active {
+        background-color: #80DEEA;
     }
     /* 按鈕容器：保持按鈕並排，不換行 */
     .button-container {
@@ -297,15 +296,17 @@ def main():
     
     # 使用自訂按鈕呈現三個策略選項，並保持按鈕並排
     st.markdown("<div class='button-container'>", unsafe_allow_html=True)
-    selected = st.radio("請選擇策略", options=["保單規劃策略", "提前贈與策略", "分散配置策略"], horizontal=True, key="strategy_select")
-    st.session_state.selected_strategy = selected
+    if st.button("保單規劃策略", key="btn_insurance"):
+        st.session_state.selected_strategy = "保單規劃策略"
+    if st.button("提前贈與策略", key="btn_gift"):
+        st.session_state.selected_strategy = "提前贈與策略"
+    if st.button("分散配置策略", key="btn_diversified"):
+        st.session_state.selected_strategy = "分散配置策略"
     st.markdown("</div>", unsafe_allow_html=True)
     
-    # 根據選擇顯示內容，容器底色根據策略而定
-    if st.session_state.selected_strategy == "保單規劃策略":
-        container_color = "#C8E6C9"  # 淡綠色
-        with st.container():
-            st.markdown(f"<div style='background-color: {container_color}; padding: 10px; border-radius: 5px;'>", unsafe_allow_html=True)
+    # 根據使用者選擇顯示對應內容
+    if "selected_strategy" in st.session_state and st.session_state.selected_strategy:
+        if st.session_state.selected_strategy == "保單規劃策略":
             st.markdown("<h6 style='color: red;'>【原始情況】</h6>", unsafe_allow_html=True)
             st.markdown(f"- 遺產總額：**{original_data['遺產總額']:,.2f} 萬元**")
             st.markdown(f"- 預估遺產稅：**{original_data['預估遺產稅']:,.2f} 萬元**")
@@ -336,12 +337,7 @@ def main():
             st.markdown(f"- 理賠金：**{taxed['理賠金']:,.2f} 萬元**")
             st.markdown(f"- 家人總共收到：**{taxed['家人總共收到']:,.2f} 萬元**")
             st.markdown(f"- 規劃效果：<span class='effect'>較原始情況增加 {taxed['規劃效果']:,.2f} 萬元</span>", unsafe_allow_html=True)
-            st.markdown("</div>", unsafe_allow_html=True)
-            
-    elif st.session_state.selected_strategy == "提前贈與策略":
-        container_color = "#BBDEFB"  # 淡藍色
-        with st.container():
-            st.markdown(f"<div style='background-color: {container_color}; padding: 10px; border-radius: 5px;'>", unsafe_allow_html=True)
+        elif st.session_state.selected_strategy == "提前贈與策略":
             st.markdown("<h6 style='color: red;'>【原始情況】</h6>", unsafe_allow_html=True)
             st.markdown(f"- 遺產總額：**{original_data['遺產總額']:,.2f} 萬元**")
             st.markdown(f"- 預估遺產稅：**{original_data['預估遺產稅']:,.2f} 萬元**")
@@ -359,12 +355,7 @@ def main():
             st.markdown(f"- 家人總共收到：**{after_gift['家人總共收到']:,.2f} 萬元**")
             effect_gift = gift_results["規劃效果"]
             st.markdown(f"- 規劃效果：<span class='effect'>較原始情況增加 {effect_gift['較原始情況增加']:,.2f} 萬元</span>", unsafe_allow_html=True)
-            st.markdown("</div>", unsafe_allow_html=True)
-            
-    elif st.session_state.selected_strategy == "分散配置策略":
-        container_color = "#F8BBD0"  # 淡粉色
-        with st.container():
-            st.markdown(f"<div style='background-color: {container_color}; padding: 10px; border-radius: 5px;'>", unsafe_allow_html=True)
+        elif st.session_state.selected_strategy == "分散配置策略":
             st.markdown("<h6 style='color: red;'>【原始情況】</h6>", unsafe_allow_html=True)
             original_div = simulate_diversified_strategy(tax_due)["原始情況"]
             st.markdown(f"- 預估遺產稅：**{original_div['預估遺產稅']:,.2f} 萬元**")
@@ -373,7 +364,6 @@ def main():
             st.markdown(f"- 預估遺產稅：**{div_results['分散配置後']['預估遺產稅']:,.2f} 萬元**")
             effect_div = div_results["規劃效果"]
             st.markdown(f"- 規劃效果：<span class='effect'>較原始情況增加 {effect_div['較原始情況增加']:,.2f} 萬元</span>", unsafe_allow_html=True)
-            st.markdown("</div>", unsafe_allow_html=True)
     
     st.markdown("---")
     st.markdown("### 想了解更多？")
