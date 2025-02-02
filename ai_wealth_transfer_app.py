@@ -280,13 +280,11 @@ def main():
         st.markdown(f"- 預估遺產稅：**{original_data['預估遺產稅']:,.2f} 萬元**")
         st.markdown(f"- 家人總共收到：**{original_data['家人總共收到']:,.2f} 萬元**")
         st.markdown("<h6 style='color: red;'>【保單規劃策略】</h6>", unsafe_allow_html=True)
-        # 先顯示預設結果標籤（但不顯示預設結果的控制項）
-        default_premium = int(math.ceil((tax_due / 1.3) / 100) * 100)  # 往上取整到百萬 (單位：萬)
-        default_ratio = 1.3
-        st.markdown(f"**預設保費：** {default_premium:,.2f} 萬元")
-        st.markdown(f"**預設理賠金：** {default_premium * default_ratio:,.2f} 萬元")
-        # 接著顯示輸入控制，讓使用者調整保費與理賠金比例
+        # 先顯示說明文字
         st.markdown("<span class='explanation'>您可以自行調整保費與理賠金比例。</span>", unsafe_allow_html=True)
+        # 再顯示輸入控制（預設值計算依然採用向上取整到百萬）
+        default_premium = int(math.ceil((tax_due / 1.3) / 100) * 100)
+        default_ratio = 1.3
         premium = st.number_input("請輸入保費（萬）", min_value=0, max_value=100000,
                                   value=default_premium, step=100, key="insurance_premium")
         premium_ratio = st.slider("請設定比例", min_value=1.0, max_value=3.0,
