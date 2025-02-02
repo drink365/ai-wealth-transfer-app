@@ -61,7 +61,7 @@ def generate_basic_advice(taxable_amount, tax_due):
 def simulate_insurance_strategy(total_assets, spouse_deduction, adult_children, other_dependents, disabled_people, parents, premium_ratio, premium):
     """
     模擬保單策略：
-    - 用戶輸入保費（萬）及比例（預設1.5，表示理賠金 = 保費 × 1.5）
+    - 用戶輸入保費（萬）及理賠金比例（預設1.3，表示理賠金 = 保費 × 1.3）
     - 模擬兩種情境：
        ① 未被實質課稅：理賠金不參與遺產稅計算
        ② 被實質課稅：理賠金納入遺產稅計算
@@ -290,10 +290,11 @@ def main():
         st.markdown(f"- 預估遺產稅：**{original_data['預估遺產稅']:,.2f} 萬元**")
         st.markdown(f"- 家人總共收到：**{original_data['家人總共收到']:,.2f} 萬元**")
         st.markdown("### 保單規劃策略")
-        st.markdown("<span class='explanation'>請依序輸入保費（萬）與比例（預設1.5）。</span>", unsafe_allow_html=True)
-        default_premium = int(math.ceil(tax_due / 1.5))
+        st.markdown("<span class='explanation'>請依序輸入保費與理賠金比例。</span>", unsafe_allow_html=True)
+        # 預設保費設定為足以支付稅款，即：ceil(預估遺產稅 / 1.3)
+        default_premium = int(math.ceil(tax_due / 1.3))
         premium = st.number_input("請輸入保費（萬）", min_value=0, max_value=100000, value=default_premium, step=100)
-        premium_ratio = st.slider("請設定比例", min_value=1.0, max_value=3.0, value=1.5, step=0.1)
+        premium_ratio = st.slider("請設定比例", min_value=1.0, max_value=3.0, value=1.3, step=0.1)
         claim_amount = premium * premium_ratio
         if claim_amount < tax_due:
             st.error("警告：稅源不足！")
