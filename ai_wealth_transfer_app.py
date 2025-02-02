@@ -280,21 +280,19 @@ def main():
         st.markdown(f"- 預估遺產稅：**{original_data['預估遺產稅']:,.2f} 萬元**")
         st.markdown(f"- 家人總共收到：**{original_data['家人總共收到']:,.2f} 萬元**")
         st.markdown("<h6 style='color: red;'>【保單規劃策略】</h6>", unsafe_allow_html=True)
-        # First, display the default simulation results (using default inputs):
-        default_premium = int(math.ceil((tax_due / 1.3) / 100) * 100)  # Rounded up to the nearest 100 (in units of 萬)
+        # 先讓使用者自行輸入保費與設定比例
+        default_premium = int(math.ceil((tax_due / 1.3) / 100) * 100)  # 往上取整到百萬 (單位：萬)
         default_ratio = 1.3
-        default_claim = default_premium * default_ratio
-        st.markdown(f"**預設保費結果：** {default_premium:,.2f} 萬元")
-        st.markdown(f"**預設理賠金結果：** {default_claim:,.2f} 萬元")
-        # Then, display the explanation text and input controls:
-        st.markdown("<span class='explanation'>您可以自行調整保費與理賠金比例。</span>", unsafe_allow_html=True)
         premium = st.number_input("請輸入保費（萬）", min_value=0, max_value=100000,
                                   value=default_premium, step=100, key="insurance_premium")
         premium_ratio = st.slider("請設定比例", min_value=1.0, max_value=3.0,
                                   value=default_ratio, step=0.1, key="insurance_ratio")
+        # 根據輸入計算目前的保費與理賠金結果
         claim_amount = premium * premium_ratio
         st.markdown(f"**目前保費：** {premium:,.2f} 萬元")
         st.markdown(f"**目前理賠金：** {claim_amount:,.2f} 萬元")
+        # 顯示說明文字
+        st.markdown("<span class='explanation'>您可以自行調整保費與理賠金比例。</span>", unsafe_allow_html=True)
         if claim_amount < tax_due:
             st.error("警告：稅源不足！")
         insurance_results = simulate_insurance_strategy(
