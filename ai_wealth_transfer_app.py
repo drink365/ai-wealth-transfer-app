@@ -33,8 +33,9 @@ def calculate_estate_tax(total_assets, spouse_deduction, adult_children, other_d
         (other_dependents * OTHER_DEPENDENTS_DEDUCTION) +
         (parents * PARENTS_DEDUCTION)
     )
+    # 若總遺產不足以覆蓋免稅額與扣除額，則拋出錯誤
     if total_assets < EXEMPT_AMOUNT + deductions:
-        raise ValueError("扣除額總和超過了總遺產，請檢查輸入數值！")
+        raise ValueError("扣除額總和超過總遺產，請檢查輸入數值！")
     
     taxable_amount = int(max(0, total_assets - EXEMPT_AMOUNT - deductions))
     tax_due = 0
@@ -48,11 +49,11 @@ def calculate_estate_tax(total_assets, spouse_deduction, adult_children, other_d
 
 def generate_basic_advice(taxable_amount, tax_due):
     """
-    提供通用的家族傳承策略建議文案，並以不同顏色標示策略項目
+    提供通用的家族傳承策略建議文案，將所有策略項目以藍色標示
     """
     advice = (
-        "<span style='color: red;'>1. 規劃保單</span>：透過保險預留稅源。\n\n"
-        "<span style='color: green;'>2. 提前贈與</span>：利用免稅贈與逐年轉移財富。\n\n"
+        "<span style='color: blue;'>1. 規劃保單</span>：透過保險預留稅源。\n\n"
+        "<span style='color: blue;'>2. 提前贈與</span>：利用免稅贈與逐年轉移財富。\n\n"
         "<span style='color: blue;'>3. 分散資產配置</span>：合理配置，降低稅率至90%。"
     )
     return advice
@@ -218,9 +219,20 @@ def main():
         disabled_people = st.number_input("重度以上身心障礙者數（每人 693 萬）", min_value=0, max_value=max_disabled, value=0, help="請輸入重度以上身心障礙者人數")
         other_dependents = st.number_input("受撫養之兄弟姊妹、祖父母數（每人 56 萬）", min_value=0, max_value=5, value=0, help="請輸入兄弟姊妹或祖父母人數")
     
+    # 檢查輸入數值是否合理
+    total_deductions = (spouse_deduction +
+                        FUNERAL_EXPENSE +
+                        (disabled_people * DISABLED_DEDUCTION) +
+                        (adult_children * ADULT_CHILD_DEDUCTION) +
+                        (other_dependents * OTHER_DEPENDENTS_DEDUCTION) +
+                        (parents * PARENTS_DEDUCTION))
+    if total_assets < EXEMPT_AMOUNT + total_deductions:
+        st.error("扣除額總和超過總遺產，請檢查輸入數值！")
+        return
+    
     # 進行遺產稅計算
     try:
-        taxable_amount, tax_due, total_deductions = calculate_estate_tax(
+        taxable_amount, tax_due, _ = calculate_estate_tax(
             total_assets, spouse_deduction, adult_children, other_dependents, disabled_people, parents
         )
     except Exception as e:
@@ -268,7 +280,7 @@ def main():
     with tabs[0]:
         st.markdown("#### 保單規劃策略說明", unsafe_allow_html=True)
         st.markdown("<span class='explanation'>輸入保費（萬）與比例（預設1.5）。</span>", unsafe_allow_html=True)
-        # 預設保費設為足以支付稅款，即：ceil(預估遺產稅 / 1.5)
+        # 預設保費設定為足以支付稅款，即：ceil(預估遺產稅 / 1.5)
         default_premium = int(math.ceil(tax_due / 1.5))
         premium = st.number_input("請輸入保費（萬）", min_value=0, max_value=100000, value=default_premium, step=100)
         premium_ratio = st.slider("請設定比例", min_value=1.0, max_value=3.0, value=1.5, step=0.1)
