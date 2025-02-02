@@ -3,7 +3,7 @@ import pandas as pd
 import math
 
 def set_config():
-    # Must be the very first Streamlit command.
+    # This must be the very first Streamlit command.
     st.set_page_config(page_title="遺產稅試算工具", layout="wide")
 
 # Call set_config() immediately.
@@ -190,7 +190,7 @@ def main():
     
     st.selectbox("選擇適用地區", ["台灣（2025年起）"], index=0)
     
-    # Input Area: Assets and Family Info
+    # Input: Assets and Family Information
     with st.container():
         st.markdown("### 請輸入資產及家庭資訊", unsafe_allow_html=True)
         total_assets = st.number_input("遺產總額（萬）", min_value=1000, max_value=100000, value=5000, step=100,
@@ -266,19 +266,17 @@ def main():
     st.markdown("## 家族傳承策略建議")
     st.markdown(generate_basic_advice(taxable_amount, tax_due), unsafe_allow_html=True)
     
-    # Use text hyperlinks as strategy options
-    # Note: Clicking a link will update the URL query parameter and reload the page.
-    query_params = st.query_params  # Accessing property without parentheses
+    # Use text hyperlinks as strategy options (no default selection)
+    query_params = st.query_params  # Access query parameters as a property
     selected = query_params.get("strategy", [None])[0]
     
     options = [("insurance", "保單規劃策略"), ("gift", "提前贈與策略"), ("diversified", "分散配置策略")]
     links = []
     for key, text in options:
-        # Use an onclick event to update the query parameter and reload the page
         if selected == key:
-            link = f"<a href=\"#\" onclick=\"window.history.pushState(null, '', '?strategy={key}'); window.location.reload();\" class='strategy-link selected'>{text}</a>"
+            link = f"<a href='?strategy={key}' class='strategy-link selected'>{text}</a>"
         else:
-            link = f"<a href=\"#\" onclick=\"window.history.pushState(null, '', '?strategy={key}'); window.location.reload();\" class='strategy-link'>{text}</a>"
+            link = f"<a href='?strategy={key}' class='strategy-link'>{text}</a>"
         links.append(link)
     st.markdown(" | ".join(links), unsafe_allow_html=True)
     
