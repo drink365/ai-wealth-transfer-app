@@ -48,22 +48,19 @@ def calculate_estate_tax(total_assets, spouse_deduction, adult_children, other_d
 
 def generate_basic_advice(taxable_amount, tax_due):
     """
-    提供通用的家族傳承策略建議文案
+    提供通用的家族傳承策略建議文案，並以不同顏色標示策略項目
     """
     advice = (
-        "建議您考慮以下策略：\n"
-        "1. 規劃保單：透過保險產品預留稅源，確保家人獲得足夠現金流支持。\n"
-        "   ※ 若理賠金不足以支付預估遺產稅，請調整保費或理賠金比例，以確保預留足夠稅源。\n"
-        "2. 提前贈與：利用每年244萬的免稅額度，逐年轉移財富，降低未來稅負；\n"
-        "3. 分散資產配置：透過合理的資產配置，降低整體稅率（假設可降至90%），達到節稅目的。"
+        "<span style='color: red;'>1. 規劃保單</span>：透過保險產品預留稅源，確保家人獲得足夠現金流支持。\n\n"
+        "<span style='color: green;'>2. 提前贈與</span>：利用每年244萬的免稅額度，逐年轉移財富，降低未來稅負；\n\n"
+        "<span style='color: blue;'>3. 分散資產配置</span>：透過合理的資產配置，降低整體稅率（假設可降至90%），達到節稅目的。"
     )
     return advice
 
 def simulate_insurance_strategy(total_assets, spouse_deduction, adult_children, other_dependents, disabled_people, parents, premium_ratio, premium):
     """
     模擬保單策略：
-    - 用戶自行輸入保費與理賠金比例（預設為1.5，表示理賠金 = 保費 × 1.5）
-    - 根據輸入的保費計算出理賠金
+    - 用戶輸入保費與理賠金比例（預設1.5，表示理賠金 = 保費 × 1.5）
     - 模擬兩種情境：
        ① 未被實質課稅：理賠金不參與遺產稅計算
        ② 被實質課稅：理賠金納入遺產稅計算
@@ -262,7 +259,7 @@ def main():
     
     # 家族傳承策略建議（通用）
     st.markdown("## 家族傳承策略建議")
-    st.text(generate_basic_advice(taxable_amount, tax_due))
+    st.markdown(generate_basic_advice(taxable_amount, tax_due), unsafe_allow_html=True)
     
     # 使用 Tabs 呈現三種模擬策略
     tabs = st.tabs(["保單規劃策略", "提前贈與策略", "分散資產配置策略"])
@@ -270,14 +267,14 @@ def main():
     # 保單規劃策略模擬：改為輸入保費，計算理賠金 = 保費 × 理賠金比例
     with tabs[0]:
         st.markdown("#### 保單規劃策略說明", unsafe_allow_html=True)
-        st.markdown("<span class='explanation'>請輸入您願意支付的保費（單位：萬），以及保費與理賠金比例（預設為1.5，表示理賠金 = 保費 × 1.5）。系統將依此模擬兩種情境下的家族傳承效果。</span>", unsafe_allow_html=True)
+        st.markdown("<span class='explanation'>請輸入您願意支付的保費（單位：萬），以及保費與理賠金比例（預設為1.5，表示理賠金 = 保費 × 1.5）。</span>", unsafe_allow_html=True)
         premium = st.number_input("請輸入保費（萬）", min_value=0, max_value=100000, value=0, step=100)
         premium_ratio = st.slider("請設定保費與理賠金比例", min_value=1.0, max_value=3.0, value=1.5, step=0.1, help="例如，1.5表示理賠金 = 保費 × 1.5")
         claim_amount = premium * premium_ratio
 
-        # 如果計算出的理賠金不足以支付預估遺產稅，則以紅色警告提示
+        # 如果計算出的理賠金不足以支付預估遺產稅，則顯示簡短警告
         if claim_amount < tax_due:
-            st.error("警告：根據您輸入的保費與理賠金比例，計算出的理賠金不足以支付預估遺產稅，請調整保費或比例！")
+            st.error("警告：稅源不足！")
         
         insurance_results = simulate_insurance_strategy(
             total_assets, spouse_deduction, adult_children, other_dependents, disabled_people, parents, premium_ratio, premium
@@ -338,7 +335,7 @@ def main():
         effect_div = div_results["規劃效果"]
         st.markdown(f"- 規劃效果：<span class='effect'>較原始情況增加 {effect_div['較原始情況增加']:,.2f} 萬元</span>", unsafe_allow_html=True)
     
-    # 行銷導引區塊
+    # 行銷導引區塊：引導用戶前往官網
     st.markdown("---")
     st.markdown("### 想了解更多？")
     st.markdown("歡迎前往 **永傳家族辦公室**，我們提供專業的家族傳承與財富規劃服務。")
