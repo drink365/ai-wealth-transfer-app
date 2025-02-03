@@ -99,13 +99,11 @@ def simulate_insurance_strategy(total_assets, spouse_deduction, adult_children, 
             "家人總共收到": net_no_insurance
         },
         "有規劃保單 (未被實質課稅)": {
-            # 已移除假設保費與假設理賠金的顯示
             "預估遺產稅": tax_new,
             "家人總共收到": net_not_taxed,
             "規劃效果": effect_not_taxed
         },
         "有規劃保單 (被實質課稅)": {
-            # 已移除假設保費與假設理賠金的顯示
             "家人總共收到": net_taxed,
             "規劃效果": effect_taxed
         }
@@ -277,7 +275,6 @@ def main():
             premium_ratio = st.slider("請設定比例", min_value=1.0, max_value=3.0,
                                       value=1.3, step=0.1, key="insurance_ratio")
         
-        # 已移除顯示假設保費與假設理賠金的部分
         if premium * premium_ratio < tax_due:
             st.error("警告：稅源不足！")
         insurance_results = simulate_insurance_strategy(
@@ -323,6 +320,33 @@ def main():
         effect_div = div_results["規劃效果"]
         st.markdown(f"- 規劃效果：<span class='effect'>較沒有規劃增加 {effect_div['較沒有規劃增加']:,.2f} 萬元</span>", unsafe_allow_html=True)
     
+    # 新增案例說明區塊：在行銷資訊前展示
+    st.markdown("---")
+    st.markdown("### 案例說明：以 3 億總資產為例")
+    st.markdown(
+        """
+        以總資產 3 億為案例，以下比較了不同規劃策略下家人最終可實際取得的資產情形：
+        
+        - **沒有規劃**：最終需繳遺產稅 **4730 萬**，家人實際取得 **25270 萬**。
+        - **提前贈與**：提前贈與 **2440 萬**，最終遺產稅 **4242 萬**，家人實際取得 **25758 萬**。（比沒有規劃多拿 **488 萬**）
+        - **購買保險**：支付保費 **6000 萬**，獲得理賠金 **9000 萬**，最終遺產稅 **3530 萬**，家人實際取得 **29470 萬**。（比沒有規劃多拿 **4200 萬**）
+        - **提前贈與＋購買保險**：提前贈與 **2440 萬**，支付保費 **6000 萬**，獲得理賠金 **9000 萬**，最終遺產稅 **3053 萬**，家人實際取得 **29947 萬**。（比沒有規劃多拿 **4677 萬**）
+        """
+    )
+    
+    case_data = {
+        "規劃策略": ["沒有規劃", "提前贈與", "購買保險", "提前贈與＋購買保險"],
+        "主要數據": [
+            "遺產稅：4730 萬\n家人取得：25270 萬",
+            "贈與：2440 萬\n遺產稅：4242 萬\n家人取得：25758 萬\n(多 488 萬)",
+            "保費：6000 萬\n理賠金：9000 萬\n遺產稅：3530 萬\n家人取得：29470 萬\n(多 4200 萬)",
+            "贈與：2440 萬\n保費：6000 萬\n理賠金：9000 萬\n遺產稅：3053 萬\n家人取得：29947 萬\n(多 4677 萬)"
+        ]
+    }
+    df_case = pd.DataFrame(case_data)
+    st.table(df_case)
+    
+    # 行銷資訊區塊
     st.markdown("---")
     st.markdown("### 想了解更多？")
     st.markdown("歡迎前往 **永傳家族辦公室**，我們提供專業的家族傳承與財富規劃服務。")
