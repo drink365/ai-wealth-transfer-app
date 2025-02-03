@@ -67,7 +67,7 @@ def generate_basic_advice(taxable_amount, tax_due):
     return advice
 
 # -------------------------------
-# 保險、贈與、分散配置策略模擬函式（原有邏輯保持不變）
+# 模擬策略函式（保險、贈與、分散配置） - 原有邏輯保持不變
 # -------------------------------
 def simulate_insurance_strategy(total_assets, spouse_deduction, adult_children, other_dependents, disabled_people, parents, premium_ratio, premium):
     _, tax_no_insurance, _ = calculate_estate_tax(
@@ -99,7 +99,7 @@ def simulate_insurance_strategy(total_assets, spouse_deduction, adult_children, 
             "規劃效果": effect_not_taxed
         },
         "有規劃保單 (被實質課稅)": {
-            "預估遺產稅": tax_effective,   # 新增此項
+            "預估遺產稅": tax_effective,
             "家人總共取得": net_taxed,
             "規劃效果": effect_taxed
         }
@@ -175,7 +175,7 @@ div[data-baseweb="radio"] label {
 st.markdown(custom_css, unsafe_allow_html=True)
 
 # -------------------------------
-# 原有主介面（資產及家庭資訊輸入、計算結果、策略選擇）
+# 原有主介面（資產及家庭資訊輸入、計算結果、策略選擇）保持不變
 # -------------------------------
 st.markdown("<h1 class='main-header'>遺產稅試算＋建議</h1>", unsafe_allow_html=True)
 st.selectbox("選擇適用地區", ["台灣（2025年起）"], index=0)
@@ -296,24 +296,42 @@ elif strategy == "分散配置策略":
     st.markdown(f"- 規劃效果：<span class='effect'>較沒有規劃增加 {effect_div['較沒有規劃增加']:,.2f} 萬元</span>", unsafe_allow_html=True)
 
 # -------------------------------
-# 綜合計算與效益評估案例區（固定以 3 億元、配偶、2 名子女為例）
+# 綜合計算與效益評估案例區
 # -------------------------------
 st.markdown("---")
 st.markdown("<h2>綜合計算與效益評估</h2>", unsafe_allow_html=True)
-st.markdown("（以下以 3 億元總資產、有配偶及 2 名子女為例）")
+st.markdown("（以下以上方用戶輸入的『遺產總額』、有配偶及 2 名子女為例）")
 
-# 案例模擬參數輸入
-premium_case = st.number_input("購買保險保費（萬）", min_value=0, max_value=100000, value=6000, step=100, key="case_premium")
-claim_case = st.number_input("保險理賠金（萬）", min_value=0, max_value=100000, value=9000, step=100, key="case_claim")
-gift_case = st.number_input("提前贈與金額（萬）", min_value=0, max_value=100000, value=2440, step=100, key="case_gift")
-
-# 固定案例參數
-CASE_TOTAL_ASSETS = 30000  # 3 億元
+# 使用上方輸入的遺產總額作為案例總資產
+CASE_TOTAL_ASSETS = total_assets_input  
 CASE_SPOUSE = True
 CASE_ADULT_CHILDREN = 2
 CASE_PARENTS = 0
 CASE_DISABLED = 0
 CASE_OTHER = 0
+
+# 預設購買保險保費預設值，抓取保單規劃策略區的預設：
+default_premium = int(math.ceil((tax_due / 1.3) / 100) * 100)
+if default_premium > CASE_TOTAL_ASSETS:
+    default_premium = CASE_TOTAL_ASSETS
+
+# 預設保險理賠金採用 9000 萬（或您希望的數值）
+default_claim = 9000
+
+# 預設提前贈與金額為 0
+default_gift = 0
+
+# 輸入區：案例參數（此區塊獨立，不影響上方策略計算）
+premium_case = st.number_input("購買保險保費（萬）", min_value=0, max_value=CASE_TOTAL_ASSETS, value=default_premium, step=100, key="case_premium")
+claim_case = st.number_input("保險理賠金（萬）", min_value=0, max_value=100000, value=default_claim, step=100, key="case_claim")
+gift_case = st.number_input("提前贈與金額（萬）", min_value=0, max_value=CASE_TOTAL_ASSETS - premium_case, value=default_gift, step=100, key="case_gift")
+
+# 若保費大於遺產總額，顯示錯誤（不會發生因為上面限制 max_value）
+if premium_case > CASE_TOTAL_ASSETS:
+    st.error("錯誤：保費不得高於遺產總額！")
+# 若提前贈與金額大於【遺產總額】-【保費】，則顯示錯誤
+if gift_case > CASE_TOTAL_ASSETS - premium_case:
+    st.error("錯誤：提前贈與金額不得高於【遺產總額】-【保費】！")
 
 # 1. 沒有規劃
 _, tax_case_no_plan, _ = calculate_estate_tax(
@@ -425,7 +443,7 @@ fig_bar_case.update_layout(margin=dict(t=100), yaxis_range=[0, 40000])
 st.plotly_chart(fig_bar_case, use_container_width=True)
 
 # -------------------------------
-# 恢復行銷資訊區塊
+# 行銷資訊區塊
 # -------------------------------
 st.markdown("---")
 st.markdown("### 想了解更多？")
