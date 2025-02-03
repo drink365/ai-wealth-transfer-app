@@ -155,9 +155,8 @@ def simulate_diversified_strategy(tax_due):
     }
 
 # -------------------------------
-# 取消自訂字體設定（恢復 Streamlit 預設字體大小）
+# 取消自訂字體設定，恢復 Streamlit 預設字體
 # -------------------------------
-#（此處刪除自訂 CSS 區塊）
 
 # -------------------------------
 # 原有主介面（資產及家庭資訊輸入、計算結果、策略選擇）
@@ -304,7 +303,7 @@ default_premium = int(math.ceil((tax_due / 1.3) / 100) * 100)
 if default_premium > CASE_TOTAL_ASSETS:
     default_premium = CASE_TOTAL_ASSETS
 
-# 保險理賠金預設值：取自 session_state["estimated_claim"]
+# 保險理賠金預設值：直接從 session_state["estimated_claim"] 取得
 default_claim = st.session_state.get("estimated_claim")
 if default_claim is None:
     default_claim = 0
@@ -409,7 +408,7 @@ case_data = {
 }
 df_case_results = pd.DataFrame(case_data)
 st.markdown("### 案例模擬結果")
-# 新增家庭狀況說明：僅在有配偶時列出「配偶」
+# 新增家庭狀況說明，若有配偶則列出
 family_status = ""
 if CASE_SPOUSE:
     family_status += "配偶, "
@@ -436,7 +435,10 @@ for idx, row in df_viz_case.iterrows():
             font=dict(color="yellow", size=14),
             yshift=-50
         )
-fig_bar_case.update_layout(margin=dict(t=100), yaxis_range=[0, 40000], autosize=True)
+# 自動依據最大數值增加一個刻度
+max_value = df_viz_case["家人總共取得（萬）"].max()
+dtick = max_value / 10
+fig_bar_case.update_layout(margin=dict(t=100), yaxis_range=[0, max_value + dtick], autosize=True)
 st.plotly_chart(fig_bar_case, use_container_width=True)
 
 # -------------------------------
