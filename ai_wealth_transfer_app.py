@@ -361,7 +361,7 @@ def main():
                      text="家人總共取得")
     fig_bar.update_traces(texttemplate='%{text}', textposition='outside')
     
-    # 計算「沒有規劃」的基準金額
+    # 設定「沒有規劃」的基準金額
     baseline = df_viz.loc[df_viz["規劃策略"]=="沒有規劃", "家人總共取得"].iloc[0]
     for idx, row in df_viz.iterrows():
         if row["規劃策略"] != "沒有規劃":
@@ -372,10 +372,12 @@ def main():
                 y=row["家人總共取得"],
                 text=diff_text,
                 showarrow=False,
-                font=dict(color="red", size=14),
-                yshift=-30  # 調整位置，根據需要微調
+                font=dict(color="yellow", size=14),
+                yshift=-50  # 調整位置，根據需要微調
             )
     
+    # 調整圖表上方空間，避免文字被切掉
+    fig_bar.update_layout(margin=dict(t=100))
     st.plotly_chart(fig_bar, use_container_width=True)
     
     # 行銷資訊區塊
