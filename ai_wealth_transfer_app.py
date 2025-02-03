@@ -89,7 +89,7 @@ def simulate_insurance_strategy(total_assets, spouse_deduction, adult_children, 
     effect_taxed = net_taxed - net_no_insurance
     return {
         "沒有規劃": {
-            "遺產總額": total_assets,
+            "總資產": total_assets,
             "預估遺產稅": tax_no_insurance,
             "家人總共取得": net_no_insurance
         },
@@ -120,12 +120,12 @@ def simulate_gift_strategy(total_assets, spouse_deduction, adult_children, other
     effect = net_after - net_original
     return {
         "沒有規劃": {
-            "遺產總額": total_assets,
+            "總資產": total_assets,
             "預估遺產稅": tax_original,
             "家人總共取得": net_original
         },
         "提前贈與後": {
-            "遺產總額": simulated_total_assets,
+            "總資產": simulated_total_assets,
             "預估遺產稅": tax_sim,
             "總贈與金額": total_gift,
             "家人總共取得": net_after,
@@ -182,9 +182,9 @@ st.selectbox("選擇適用地區", ["台灣（2025年起）"], index=0)
 
 with st.container():
     st.markdown("### 請輸入資產及家庭資訊", unsafe_allow_html=True)
-    total_assets_input = st.number_input("遺產總額（萬）", min_value=1000, max_value=100000,
+    total_assets_input = st.number_input("總資產（萬）", min_value=1000, max_value=100000,
                                        value=5000, step=100,
-                                       help="請輸入您的總遺產金額（單位：萬）")
+                                       help="請輸入您的總資產（單位：萬）")
     st.markdown("---")
     st.markdown("#### 請輸入家庭成員數")
     has_spouse = st.checkbox("是否有配偶（扣除額 553 萬）", value=False)
@@ -208,7 +208,7 @@ st.subheader(f"預估遺產稅：{tax_due:,.2f} 萬元")
 col1, col2, col3 = st.columns(3)
 with col1:
     st.markdown("**資產概況**")
-    df_assets = pd.DataFrame({"項目": ["遺產總額"], "金額（萬）": [total_assets_input]})
+    df_assets = pd.DataFrame({"項目": ["總資產"], "金額（萬）": [total_assets_input]})
     st.table(df_assets)
 with col2:
     st.markdown("**扣除項目**")
@@ -232,7 +232,7 @@ st.markdown("</div>", unsafe_allow_html=True)
 st.markdown("---")
 
 original_data = {
-    "遺產總額": total_assets_input,
+    "總資產": total_assets_input,
     "預估遺產稅": tax_due,
     "家人總共取得": total_assets_input - tax_due
 }
@@ -242,7 +242,7 @@ strategy = st.radio("請選擇策略", options=["", "保單規劃策略", "提�
                     index=0, horizontal=True)
 if strategy == "保單規劃策略":
     st.markdown("<h6 style='color: red;'>【沒有規劃】</h6>", unsafe_allow_html=True)
-    st.markdown(f"- 遺產總額：**{original_data['遺產總額']:,.2f} 萬元**")
+    st.markdown(f"- 總資產：**{original_data['總資產']:,.2f} 萬元**")
     st.markdown(f"- 預估遺產稅：**{original_data['預估遺產稅']:,.2f} 萬元**")
     st.markdown(f"- 家人總共取得：**{original_data['家人總共取得']:,.2f} 萬元**")
     st.markdown("<h6 style='color: red;'>【保單規劃策略】</h6>", unsafe_allow_html=True)
@@ -273,7 +273,7 @@ if strategy == "保單規劃策略":
     st.markdown(f"- 規劃效果：<span class='effect'>較沒有規劃增加 {taxed['規劃效果']:,.2f} 萬元</span>", unsafe_allow_html=True)
 elif strategy == "提前贈與策略":
     st.markdown("<h6 style='color: red;'>【沒有規劃】</h6>", unsafe_allow_html=True)
-    st.markdown(f"- 遺產總額：**{original_data['遺產總額']:,.2f} 萬元**")
+    st.markdown(f"- 總資產：**{original_data['總資產']:,.2f} 萬元**")
     st.markdown(f"- 預估遺產稅：**{original_data['預估遺產稅']:,.2f} 萬元**")
     st.markdown(f"- 家人總共取得：**{original_data['家人總共取得']:,.2f} 萬元**")
     st.markdown("<h6 style='color: red;'>【提前贈與後】</h6>", unsafe_allow_html=True)
@@ -283,7 +283,7 @@ elif strategy == "提前贈與策略":
     )
     after_gift = gift_results["提前贈與後"]
     st.markdown(f"- 贈與年數：**{after_gift['贈與年數']} 年**")
-    st.markdown(f"- 遺產總額：**{after_gift['遺產總額']:,.2f} 萬元**")
+    st.markdown(f"- 總資產：**{after_gift['遺產總額']:,.2f} 萬元**")
     st.markdown(f"- 預估遺產稅：**{after_gift['預估遺產稅']:,.2f} 萬元**")
     st.markdown(f"- 總贈與金額：**{after_gift['總贈與金額']:,.2f} 萬元**")
     st.markdown(f"- 家人總共取得：**{after_gift['家人總共取得']:,.2f} 萬元**")
@@ -304,7 +304,7 @@ elif strategy == "分散配置策略":
 # -------------------------------
 st.markdown("---")
 st.markdown("<h2>綜合計算與效益評估</h2>", unsafe_allow_html=True)
-st.markdown("（以下以上方用戶輸入的『遺產總額』及家庭成員狀況為例）")
+st.markdown("（以下以上方用戶輸入的『總資產』及家庭成員狀況為例）")
 
 # 案例總資產及家庭狀況採用上方用戶輸入
 CASE_TOTAL_ASSETS = total_assets_input  
@@ -314,12 +314,12 @@ CASE_PARENTS = parents_input
 CASE_DISABLED = disabled_people_input
 CASE_OTHER = other_dependents_input
 
-# 購買保險保費預設值：抓取保單規劃區的預設值，且不得超過遺產總額
+# 購買保險保費預設值：抓取保單規劃區的預設值，且不得超過總資產
 default_premium = int(math.ceil((tax_due / 1.3) / 100) * 100)
 if default_premium > CASE_TOTAL_ASSETS:
     default_premium = CASE_TOTAL_ASSETS
 
-# 保險理賠金預設值：取自 session_state["estimated_claim"]，若無則預設 0
+# 保險理賠金預設值：取自 session_state["estimated_claim"]（若不存在則預設 0）
 default_claim = st.session_state.get("estimated_claim", 0)
 default_claim = int(default_claim)
 
@@ -332,9 +332,9 @@ claim_case = st.number_input("保險理賠金（萬）", min_value=0, max_value=
 gift_case = st.number_input("提前贈與金額（萬）", min_value=0, max_value=CASE_TOTAL_ASSETS - premium_case, value=default_gift, step=100, key="case_gift")
 
 if premium_case > CASE_TOTAL_ASSETS:
-    st.error("錯誤：保費不得高於遺產總額！")
+    st.error("錯誤：保費不得高於總資產！")
 if gift_case > CASE_TOTAL_ASSETS - premium_case:
-    st.error("錯誤：提前贈與金額不得高於【遺產總額】-【保費】！")
+    st.error("錯誤：提前贈與金額不得高於【總資產】-【保費】！")
 
 # 1. 沒有規劃
 _, tax_case_no_plan, _ = calculate_estate_tax(
@@ -421,6 +421,9 @@ case_data = {
 }
 df_case_results = pd.DataFrame(case_data)
 st.markdown("### 案例模擬結果")
+# 新增家庭狀況說明
+family_status = f"家庭狀況：配偶：{'有' if CASE_SPOUSE else '無'}, 子女：{CASE_ADULT_CHILDREN} 人, 父母：{CASE_PARENTS} 人, 重度身心障礙者：{CASE_DISABLED} 人, 其他撫養：{CASE_OTHER} 人"
+st.markdown(f"**總資產：{CASE_TOTAL_ASSETS:,.2f} 萬**  |  **{family_status}**")
 st.table(df_case_results)
 
 # 圖表呈現（長條圖）
