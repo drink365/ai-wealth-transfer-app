@@ -97,15 +97,15 @@ def simulate_insurance_strategy(total_assets, spouse_deduction, adult_children, 
         "沒有規劃": {
             "遺產總額": total_assets,
             "預估遺產稅": tax_no_insurance,
-            "家人總共收到": net_no_insurance
+            "家人總共取得": net_no_insurance
         },
         "有規劃保單 (未被實質課稅)": {
             "預估遺產稅": tax_new,
-            "家人總共收到": net_not_taxed,
+            "家人總共取得": net_not_taxed,
             "規劃效果": effect_not_taxed
         },
         "有規劃保單 (被實質課稅)": {
-            "家人總共收到": net_taxed,
+            "家人總共取得": net_taxed,
             "規劃效果": effect_taxed
         }
     }
@@ -131,13 +131,13 @@ def simulate_gift_strategy(total_assets, spouse_deduction, adult_children, other
         "沒有規劃": {
             "遺產總額": total_assets,
             "預估遺產稅": tax_original,
-            "家人總共收到": net_original
+            "家人總共取得": net_original
         },
         "提前贈與後": {
             "遺產總額": simulated_total_assets,
             "預估遺產稅": tax_sim,
             "總贈與金額": round(total_gift, 2),
-            "家人總共收到": net_after,
+            "家人總共取得": net_after,
             "贈與年數": years
         },
         "規劃效果": {
@@ -252,7 +252,7 @@ def main():
     original_data = {
         "遺產總額": total_assets,
         "預估遺產稅": tax_due,
-        "家人總共收到": total_assets - tax_due
+        "家人總共取得": total_assets - tax_due
     }
     
     st.markdown("## 家族傳承策略建議")
@@ -266,7 +266,7 @@ def main():
         st.markdown("<h6 style='color: red;'>【沒有規劃】</h6>", unsafe_allow_html=True)
         st.markdown(f"- 遺產總額：**{original_data['遺產總額']:,.2f} 萬元**")
         st.markdown(f"- 預估遺產稅：**{original_data['預估遺產稅']:,.2f} 萬元**")
-        st.markdown(f"- 家人總共收到：**{original_data['家人總共收到']:,.2f} 萬元**")
+        st.markdown(f"- 家人總共取得：**{original_data['家人總共取得']:,.2f} 萬元**")
         st.markdown("<h6 style='color: red;'>【保單規劃策略】</h6>", unsafe_allow_html=True)
         
         # expander 群組：說明與輸入控制項
@@ -285,18 +285,18 @@ def main():
         st.markdown("<h6 style='color: red;'>【有規劃保單（未被實質課稅）】</h6>", unsafe_allow_html=True)
         not_taxed = insurance_results["有規劃保單 (未被實質課稅)"]
         st.markdown(f"- 預估遺產稅：**{not_taxed['預估遺產稅']:,.2f} 萬元**")
-        st.markdown(f"- 家人總共收到：**{not_taxed['家人總共收到']:,.2f} 萬元**")
+        st.markdown(f"- 家人總共取得：**{not_taxed['家人總共取得']:,.2f} 萬元**")
         st.markdown(f"- 規劃效果：<span class='effect'>較沒有規劃增加 {not_taxed['規劃效果']:,.2f} 萬元</span>", unsafe_allow_html=True)
         st.markdown("<h6 style='color: red;'>【有規劃保單（被實質課稅）】</h6>", unsafe_allow_html=True)
         taxed = insurance_results["有規劃保單 (被實質課稅)"]
-        st.markdown(f"- 家人總共收到：**{taxed['家人總共收到']:,.2f} 萬元**")
+        st.markdown(f"- 家人總共取得：**{taxed['家人總共取得']:,.2f} 萬元**")
         st.markdown(f"- 規劃效果：<span class='effect'>較沒有規劃增加 {taxed['規劃效果']:,.2f} 萬元</span>", unsafe_allow_html=True)
     
     elif strategy == "提前贈與策略":
         st.markdown("<h6 style='color: red;'>【沒有規劃】</h6>", unsafe_allow_html=True)
         st.markdown(f"- 遺產總額：**{original_data['遺產總額']:,.2f} 萬元**")
         st.markdown(f"- 預估遺產稅：**{original_data['預估遺產稅']:,.2f} 萬元**")
-        st.markdown(f"- 家人總共收到：**{original_data['家人總共收到']:,.2f} 萬元**")
+        st.markdown(f"- 家人總共取得：**{original_data['家人總共取得']:,.2f} 萬元**")
         st.markdown("<h6 style='color: red;'>【提前贈與後】</h6>", unsafe_allow_html=True)
         years = st.slider("請設定贈與年數", 1, 10, 3, 1, key="gift_years")
         gift_results = simulate_gift_strategy(
@@ -307,7 +307,7 @@ def main():
         st.markdown(f"- 遺產總額：**{after_gift['遺產總額']:,.2f} 萬元**")
         st.markdown(f"- 預估遺產稅：**{after_gift['預估遺產稅']:,.2f} 萬元**")
         st.markdown(f"- 總贈與金額：**{after_gift['總贈與金額']:,.2f} 萬元**")
-        st.markdown(f"- 家人總共收到：**{after_gift['家人總共收到']:,.2f} 萬元**")
+        st.markdown(f"- 家人總共取得：**{after_gift['家人總共取得']:,.2f} 萬元**")
         effect_gift = gift_results["規劃效果"]
         st.markdown(f"- 規劃效果：<span class='effect'>較沒有規劃增加 {effect_gift['較沒有規劃增加']:,.2f} 萬元</span>", unsafe_allow_html=True)
     
@@ -328,11 +328,11 @@ def main():
         """
         以總資產 3 億為案例，以下比較了不同規劃策略下家人最終可實際取得的資產情形：
         
-        - **沒有規劃**，遺產稅 4730 萬, 家人取得 25270 萬
-        - **提前贈與**，贈與 2440 萬, 遺產稅 4242 萬, 家人取得 25758 萬, 多 488 萬
-        - **購買保險**，保費 6000 萬, 理賠金 9000 萬, 遺產稅 3530 萬, 家人取得 29470 萬, 多 4200 萬
-        - **提前贈與＋購買保險**，贈與 2440 萬, 保費 6000 萬, 理賠金 9000 萬, 遺產稅 3053 萬, 家人取得 29947 萬, 多 4677 萬
-        - **提前贈與＋購買保險（被實質課稅）**，贈與 2440 萬, 保費 6000 萬, 理賠金 9000 萬, 被實質課稅, 遺產稅 4853 萬, 家人取得 28147 萬, 多 2877 萬
+        - **沒有規劃**，遺產稅 4730 萬, 家人總共取得 25270 萬
+        - **提前贈與**，贈與 2440 萬, 遺產稅 4242 萬, 家人總共取得 25758 萬, 多 488 萬
+        - **購買保險**，保費 6000 萬, 理賠金 9000 萬, 遺產稅 3530 萬, 家人總共取得 29470 萬, 多 4200 萬
+        - **提前贈與＋購買保險**，贈與 2440 萬, 保費 6000 萬, 理賠金 9000 萬, 遺產稅 3053 萬, 家人總共取得 29947 萬, 多 4677 萬
+        - **提前贈與＋購買保險（被實質課稅）**，贈與 2440 萬, 保費 6000 萬, 理賠金 9000 萬, 被實質課稅, 遺產稅 4853 萬, 家人總共取得 28147 萬, 多 2877 萬
         """
     )
     
@@ -340,27 +340,31 @@ def main():
     case_data = {
         "規劃策略": ["沒有規劃", "提前贈與", "購買保險", "提前贈與＋購買保險", "提前贈與＋購買保險（被實質課稅）"],
         "主要數據": [
-            "遺產稅 4730 萬, 家人取得 25270 萬",
-            "贈與 2440 萬, 遺產稅 4242 萬, 家人取得 25758 萬, 多 488 萬",
-            "保費 6000 萬, 理賠金 9000 萬, 遺產稅 3530 萬, 家人取得 29470 萬, 多 4200 萬",
-            "贈與 2440 萬, 保費 6000 萬, 理賠金 9000 萬, 遺產稅 3053 萬, 家人取得 29947 萬, 多 4677 萬",
-            "贈與 2440 萬, 保費 6000 萬, 理賠金 9000 萬, 被實質課稅, 遺產稅 4853 萬, 家人取得 28147 萬, 多 2877 萬"
+            "遺產稅 4730 萬, 家人總共取得 25270 萬",
+            "贈與 2440 萬, 遺產稅 4242 萬, 家人總共取得 25758 萬, 多 488 萬",
+            "保費 6000 萬, 理賠金 9000 萬, 遺產稅 3530 萬, 家人總共取得 29470 萬, 多 4200 萬",
+            "贈與 2440 萬, 保費 6000 萬, 理賠金 9000 萬, 遺產稅 3053 萬, 家人總共取得 29947 萬, 多 4677 萬",
+            "贈與 2440 萬, 保費 6000 萬, 理賠金 9000 萬, 被實質課稅, 遺產稅 4853 萬, 家人總共取得 28147 萬, 多 2877 萬"
         ]
     }
     df_case = pd.DataFrame(case_data)
     st.table(df_case)
     
     # --- 視覺化圖表 ---
-    # 製作一個比較家人最終取得金額的長條圖
+    # 1. 長條圖：比較各策略下家人總共取得金額
     df_viz = pd.DataFrame({
         "規劃策略": ["沒有規劃", "提前贈與", "購買保險", "提前贈與＋購買保險", "提前贈與＋購買保險（被實質課稅）"],
-        "家人取得": [25270, 25758, 29470, 29947, 28147]
+        "家人總共取得": [25270, 25758, 29470, 29947, 28147]
     })
-    fig = px.bar(df_viz, x="規劃策略", y="家人取得",
-                 title="不同策略下家人最終取得金額比較",
-                 text="家人取得")
-    fig.update_traces(texttemplate='%{text}', textposition='outside')
-    st.plotly_chart(fig, use_container_width=True)
+    fig_bar = px.bar(df_viz, x="規劃策略", y="家人總共取得",
+                     title="不同策略下家人總共取得金額比較",
+                     text="家人總共取得")
+    fig_bar.update_traces(texttemplate='%{text}', textposition='outside')
+    st.plotly_chart(fig_bar, use_container_width=True)
+    
+    # 2. 圓餅圖：以比例呈現各策略下家人總共取得的分布情形
+    fig_pie = px.pie(df_viz, names="規劃策略", values="家人總共取得", title="各策略家人總共取得金額比例")
+    st.plotly_chart(fig_pie, use_container_width=True)
     
     # 行銷資訊區塊
     st.markdown("---")
