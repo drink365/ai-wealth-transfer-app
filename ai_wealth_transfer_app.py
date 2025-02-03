@@ -99,15 +99,13 @@ def simulate_insurance_strategy(total_assets, spouse_deduction, adult_children, 
             "家人總共收到": net_no_insurance
         },
         "有規劃保單 (未被實質課稅)": {
-            "保費": premium,
-            "理賠金": claim_amount,
+            # 已移除假設保費與假設理賠金的顯示
             "預估遺產稅": tax_new,
             "家人總共收到": net_not_taxed,
             "規劃效果": effect_not_taxed
         },
         "有規劃保單 (被實質課稅)": {
-            "保費": premium,
-            "理賠金": claim_amount,
+            # 已移除假設保費與假設理賠金的顯示
             "家人總共收到": net_taxed,
             "規劃效果": effect_taxed
         }
@@ -279,11 +277,8 @@ def main():
             premium_ratio = st.slider("請設定比例", min_value=1.0, max_value=3.0,
                                       value=1.3, step=0.1, key="insurance_ratio")
         
-        # 根據使用者輸入顯示目前結果
-        current_claim = premium * premium_ratio
-        st.markdown(f"**假設保費：** {premium:,.2f} 萬元")
-        st.markdown(f"**假設理賠金：** {current_claim:,.2f} 萬元")
-        if current_claim < tax_due:
+        # 已移除顯示假設保費與假設理賠金的部分
+        if premium * premium_ratio < tax_due:
             st.error("警告：稅源不足！")
         insurance_results = simulate_insurance_strategy(
             total_assets, spouse_deduction, adult_children, other_dependents, disabled_people, parents,
@@ -291,15 +286,11 @@ def main():
         )
         st.markdown("<h6 style='color: red;'>【有規劃保單（未被實質課稅）】</h6>", unsafe_allow_html=True)
         not_taxed = insurance_results["有規劃保單 (未被實質課稅)"]
-        st.markdown(f"- 保費：**{not_taxed['保費']:,.2f} 萬元**")
-        st.markdown(f"- 理賠金：**{not_taxed['理賠金']:,.2f} 萬元**")
         st.markdown(f"- 預估遺產稅：**{not_taxed['預估遺產稅']:,.2f} 萬元**")
         st.markdown(f"- 家人總共收到：**{not_taxed['家人總共收到']:,.2f} 萬元**")
         st.markdown(f"- 規劃效果：<span class='effect'>較沒有規劃增加 {not_taxed['規劃效果']:,.2f} 萬元</span>", unsafe_allow_html=True)
         st.markdown("<h6 style='color: red;'>【有規劃保單（被實質課稅）】</h6>", unsafe_allow_html=True)
         taxed = insurance_results["有規劃保單 (被實質課稅)"]
-        st.markdown(f"- 保費：**{taxed['保費']:,.2f} 萬元**")
-        st.markdown(f"- 理賠金：**{taxed['理賠金']:,.2f} 萬元**")
         st.markdown(f"- 家人總共收到：**{taxed['家人總共收到']:,.2f} 萬元**")
         st.markdown(f"- 規劃效果：<span class='effect'>較沒有規劃增加 {taxed['規劃效果']:,.2f} 萬元</span>", unsafe_allow_html=True)
     
