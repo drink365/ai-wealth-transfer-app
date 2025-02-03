@@ -93,7 +93,7 @@ def simulate_insurance_strategy(total_assets, spouse_deduction, adult_children, 
     net_taxed = round(effective_estate - tax_effective, 2)
     effect_taxed = round(net_taxed - net_no_insurance, 2)
     return {
-        "原始情況": {
+        "沒有規劃": {
             "遺產總額": total_assets,
             "預估遺產稅": tax_no_insurance,
             "家人總共收到": net_no_insurance
@@ -131,7 +131,7 @@ def simulate_gift_strategy(total_assets, spouse_deduction, adult_children, other
     net_original = total_assets - tax_original
     effect = round(net_after - net_original, 2)
     return {
-        "原始情況": {
+        "沒有規劃": {
             "遺產總額": total_assets,
             "預估遺產稅": tax_original,
             "家人總共收到": net_original
@@ -144,7 +144,7 @@ def simulate_gift_strategy(total_assets, spouse_deduction, adult_children, other
             "贈與年數": years
         },
         "規劃效果": {
-            "較原始情況增加": effect
+            "較沒有規劃增加": effect
         }
     }
 
@@ -158,14 +158,14 @@ def simulate_diversified_strategy(tax_due):
     saved = round(tax_due - simulated_tax_due, 2)
     percent_saved = round((saved / tax_due) * 100, 2) if tax_due else 0
     return {
-        "原始情況": {
+        "沒有規劃": {
             "預估遺產稅": tax_due
         },
         "分散配置後": {
             "預估遺產稅": simulated_tax_due
         },
         "規劃效果": {
-            "較原始情況增加": saved,
+            "較沒有規劃增加": saved,
             "節省百分比": percent_saved
         }
     }
@@ -266,7 +266,7 @@ def main():
                         index=0, horizontal=True)
     
     if strategy == "保單規劃策略":
-        st.markdown("<h6 style='color: red;'>【原始情況】</h6>", unsafe_allow_html=True)
+        st.markdown("<h6 style='color: red;'>【沒有規劃】</h6>", unsafe_allow_html=True)
         st.markdown(f"- 遺產總額：**{original_data['遺產總額']:,.2f} 萬元**")
         st.markdown(f"- 預估遺產稅：**{original_data['預估遺產稅']:,.2f} 萬元**")
         st.markdown(f"- 家人總共收到：**{original_data['家人總共收到']:,.2f} 萬元**")
@@ -295,16 +295,16 @@ def main():
         st.markdown(f"- 理賠金：**{not_taxed['理賠金']:,.2f} 萬元**")
         st.markdown(f"- 預估遺產稅：**{not_taxed['預估遺產稅']:,.2f} 萬元**")
         st.markdown(f"- 家人總共收到：**{not_taxed['家人總共收到']:,.2f} 萬元**")
-        st.markdown(f"- 規劃效果：<span class='effect'>較原始情況增加 {not_taxed['規劃效果']:,.2f} 萬元</span>", unsafe_allow_html=True)
+        st.markdown(f"- 規劃效果：<span class='effect'>較沒有規劃增加 {not_taxed['規劃效果']:,.2f} 萬元</span>", unsafe_allow_html=True)
         st.markdown("<h6 style='color: red;'>【有規劃保單（被實質課稅）】</h6>", unsafe_allow_html=True)
         taxed = insurance_results["有規劃保單 (被實質課稅)"]
         st.markdown(f"- 保費：**{taxed['保費']:,.2f} 萬元**")
         st.markdown(f"- 理賠金：**{taxed['理賠金']:,.2f} 萬元**")
         st.markdown(f"- 家人總共收到：**{taxed['家人總共收到']:,.2f} 萬元**")
-        st.markdown(f"- 規劃效果：<span class='effect'>較原始情況增加 {taxed['規劃效果']:,.2f} 萬元</span>", unsafe_allow_html=True)
+        st.markdown(f"- 規劃效果：<span class='effect'>較沒有規劃增加 {taxed['規劃效果']:,.2f} 萬元</span>", unsafe_allow_html=True)
     
     elif strategy == "提前贈與策略":
-        st.markdown("<h6 style='color: red;'>【原始情況】</h6>", unsafe_allow_html=True)
+        st.markdown("<h6 style='color: red;'>【沒有規劃】</h6>", unsafe_allow_html=True)
         st.markdown(f"- 遺產總額：**{original_data['遺產總額']:,.2f} 萬元**")
         st.markdown(f"- 預估遺產稅：**{original_data['預估遺產稅']:,.2f} 萬元**")
         st.markdown(f"- 家人總共收到：**{original_data['家人總共收到']:,.2f} 萬元**")
@@ -320,17 +320,17 @@ def main():
         st.markdown(f"- 總贈與金額：**{after_gift['總贈與金額']:,.2f} 萬元**")
         st.markdown(f"- 家人總共收到：**{after_gift['家人總共收到']:,.2f} 萬元**")
         effect_gift = gift_results["規劃效果"]
-        st.markdown(f"- 規劃效果：<span class='effect'>較原始情況增加 {effect_gift['較原始情況增加']:,.2f} 萬元</span>", unsafe_allow_html=True)
+        st.markdown(f"- 規劃效果：<span class='effect'>較沒有規劃增加 {effect_gift['較沒有規劃增加']:,.2f} 萬元</span>", unsafe_allow_html=True)
     
     elif strategy == "分散配置策略":
-        st.markdown("<h6 style='color: red;'>【原始情況】</h6>", unsafe_allow_html=True)
-        original_div = simulate_diversified_strategy(tax_due)["原始情況"]
+        st.markdown("<h6 style='color: red;'>【沒有規劃】</h6>", unsafe_allow_html=True)
+        original_div = simulate_diversified_strategy(tax_due)["沒有規劃"]
         st.markdown(f"- 預估遺產稅：**{original_div['預估遺產稅']:,.2f} 萬元**")
         st.markdown("<h6 style='color: red;'>【分散配置後】</h6>", unsafe_allow_html=True)
         div_results = simulate_diversified_strategy(tax_due)
         st.markdown(f"- 預估遺產稅：**{div_results['分散配置後']['預估遺產稅']:,.2f} 萬元**")
         effect_div = div_results["規劃效果"]
-        st.markdown(f"- 規劃效果：<span class='effect'>較原始情況增加 {effect_div['較原始情況增加']:,.2f} 萬元</span>", unsafe_allow_html=True)
+        st.markdown(f"- 規劃效果：<span class='effect'>較沒有規劃增加 {effect_div['較沒有規劃增加']:,.2f} 萬元</span>", unsafe_allow_html=True)
     
     st.markdown("---")
     st.markdown("### 想了解更多？")
