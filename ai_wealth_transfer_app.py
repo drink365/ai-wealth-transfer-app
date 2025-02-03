@@ -155,24 +155,9 @@ def simulate_diversified_strategy(tax_due):
     }
 
 # -------------------------------
-# Custom CSS
+# 取消自訂字體設定（恢復 Streamlit 預設字體大小）
 # -------------------------------
-custom_css = """
-<style>
-div[data-baseweb="radio"] label {
-    font-size: 20px;
-}
-.effect {
-    color: green;
-    font-weight: bold;
-}
-.explanation {
-    font-size: 18px;
-    color: #0077CC;
-}
-</style>
-"""
-st.markdown(custom_css, unsafe_allow_html=True)
+#（此處刪除自訂 CSS 區塊）
 
 # -------------------------------
 # 原有主介面（資產及家庭資訊輸入、計算結果、策略選擇）
@@ -319,9 +304,12 @@ default_premium = int(math.ceil((tax_due / 1.3) / 100) * 100)
 if default_premium > CASE_TOTAL_ASSETS:
     default_premium = CASE_TOTAL_ASSETS
 
-# 保險理賠金預設值：取自 session_state["estimated_claim"]（若不存在則預設 0）
-default_claim = st.session_state.get("estimated_claim", 0)
-default_claim = int(default_claim)
+# 保險理賠金預設值：取自 session_state["estimated_claim"]
+default_claim = st.session_state.get("estimated_claim")
+if default_claim is None:
+    default_claim = 0
+else:
+    default_claim = int(default_claim)
 
 # 提前贈與金額預設值為 0
 default_gift = 0
@@ -421,9 +409,12 @@ case_data = {
 }
 df_case_results = pd.DataFrame(case_data)
 st.markdown("### 案例模擬結果")
-# 新增家庭狀況說明
-family_status = f"家庭狀況：配偶：{'有' if CASE_SPOUSE else '無'}, 子女：{CASE_ADULT_CHILDREN} 人, 父母：{CASE_PARENTS} 人, 重度身心障礙者：{CASE_DISABLED} 人, 其他撫養：{CASE_OTHER} 人"
-st.markdown(f"**總資產：{CASE_TOTAL_ASSETS:,.2f} 萬**  |  **{family_status}**")
+# 新增家庭狀況說明：僅在有配偶時列出「配偶」
+family_status = ""
+if CASE_SPOUSE:
+    family_status += "配偶, "
+family_status += f"子女：{CASE_ADULT_CHILDREN} 人, 父母：{CASE_PARENTS} 人, 重度身心障礙者：{CASE_DISABLED} 人, 其他撫養：{CASE_OTHER} 人"
+st.markdown(f"**總資產：{CASE_TOTAL_ASSETS:,.2f} 萬**  |  **家庭狀況：{family_status}**")
 st.table(df_case_results)
 
 # 圖表呈現（長條圖）
