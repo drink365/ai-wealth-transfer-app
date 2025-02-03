@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import math
 import plotly.express as px
+import plotly.graph_objects as go
 
 def set_config():
     # 此指令必須放在最前面
@@ -362,9 +363,25 @@ def main():
     fig_bar.update_traces(texttemplate='%{text}', textposition='outside')
     st.plotly_chart(fig_bar, use_container_width=True)
     
-    # 2. 圓餅圖：以比例呈現各策略下家人總共取得的分布情形
-    fig_pie = px.pie(df_viz, names="規劃策略", values="家人總共取得", title="各策略家人總共取得金額比例")
-    st.plotly_chart(fig_pie, use_container_width=True)
+    # 2. Waterfall 瀑布圖：以增減差異呈現各策略相對於【沒有規劃】的效果
+    # 設定第一筆為絕對值，其餘以差異表示
+    baseline = df_viz.loc[df_viz["規劃策略"]=="沒有規劃", "家人總共取得"].iloc[0]
+    values = df_viz["家人總共取得"].tolist()
+    # 差異數據：第一筆為絕對值，其他為與 baseline 的差值
+    differences = [values[0]] + [v - baseline for v in values[1:]]
+    fig_waterfall = go.Figure(go.Waterfall(
+        measure = ["absolute"] + ["relative"]*(len(values)-1),
+        x = df_viz["規劃策略"],
+        y = differences,
+        text = [f"{v}" for v in values],
+        textposition = "outside",
+        connector = {"line": {"color": "rgb(63, 63, 63)"}}
+    ))
+    fig_waterfall.update_layout(
+        title = "Waterfall 瀑布圖：各策略相對於【沒有規劃】的增減差異",
+        showlegend = True
+    )
+    st.plotly_chart(fig_waterfall, use_container_width=True)
     
     # 行銷資訊區塊
     st.markdown("---")
