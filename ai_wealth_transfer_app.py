@@ -299,12 +299,8 @@ default_premium = int(math.ceil((tax_due / 1.3) / 100) * 100)
 if default_premium > CASE_TOTAL_ASSETS:
     default_premium = CASE_TOTAL_ASSETS
 
-# 保險理賠金預設值：直接從 session_state["estimated_claim"] 取得
-default_claim = st.session_state.get("estimated_claim")
-if default_claim is None:
-    default_claim = 0
-else:
-    default_claim = int(default_claim)
+# 保險理賠金預設值：直接設定為保費*1.5
+default_claim = int(default_premium * 1.5)
 
 # 提前贈與金額預設值為 0
 default_gift = 0
@@ -403,12 +399,12 @@ case_data = {
     ]
 }
 df_case_results = pd.DataFrame(case_data)
-# 新增「規劃效益」欄位：各規劃情況與「沒有規劃」的差額
+# 新增「規劃效益」欄：各規劃情況與「沒有規劃」的差額
 baseline_value = df_case_results.loc[df_case_results["規劃策略"]=="沒有規劃", "家人總共取得（萬）"].iloc[0]
 df_case_results["規劃效益"] = df_case_results["家人總共取得（萬）"] - baseline_value
 
 st.markdown("### 案例模擬結果")
-# 新增家庭狀況說明，若有配偶則列出「配偶」；其他直接顯示數值，例如 "子女2人"
+# 新增家庭狀況說明：若有配偶則列出「配偶」；其他直接顯示數值，例如 "子女2人"
 family_status = ""
 if CASE_SPOUSE:
     family_status += "配偶, "
