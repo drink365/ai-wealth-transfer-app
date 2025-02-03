@@ -376,8 +376,8 @@ def main():
                 yshift=-50  # 調整位置，根據需要微調
             )
     
-    # 調整圖表上方空間，避免文字被切掉
-    fig_bar.update_layout(margin=dict(t=100))
+    # 調整圖表上方空間及 y 軸範圍
+    fig_bar.update_layout(margin=dict(t=100), yaxis_range=[0, 40000])
     st.plotly_chart(fig_bar, use_container_width=True)
     
     # 行銷資訊區塊
