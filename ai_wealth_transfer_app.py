@@ -301,9 +301,6 @@ if default_premium > CASE_TOTAL_ASSETS:
 
 # 保險理賠金預設值：直接從 session_state["estimated_claim"] 取得
 default_claim = st.session_state.get("estimated_claim")
-if default_claim is None:
-    default_claim = 0
-else:
     default_claim = int(default_claim)
 
 # 提前贈與金額預設值為 0
