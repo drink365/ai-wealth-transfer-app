@@ -4,7 +4,7 @@ import math
 
 def set_config():
     # 此指令必須放在最前面
-    st.set_page_config(page_title="遺產稅試算工具", layout="wide")
+    st.set_page_config(page_title="遺產稅試算+建議", layout="wide")
 
 # 立即呼叫 set_config()
 set_config()
