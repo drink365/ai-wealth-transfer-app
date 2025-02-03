@@ -3,13 +3,16 @@ import pandas as pd
 import math
 import plotly.express as px
 
+# -------------------------------
+# 設定頁面
+# -------------------------------
 def set_config():
     st.set_page_config(page_title="遺產稅試算＋建議", layout="wide")
-
 set_config()
 
-# === Constants（單位：萬）===
-# 原本計算用參數
+# -------------------------------
+# Constants（單位：萬）
+# -------------------------------
 EXEMPT_AMOUNT = 1333          # 免稅額
 FUNERAL_EXPENSE = 138         # 喪葬費扣除額
 SPOUSE_DEDUCTION_VALUE = 553  # 配偶扣除額
@@ -63,7 +66,9 @@ def generate_basic_advice(taxable_amount, tax_due):
     )
     return advice
 
-# （以下保留原有保險、贈與、分散配置策略相關模擬函式，程式碼保持不變）
+# -------------------------------
+# 保險、贈與、分散配置策略模擬函式（原有邏輯保持不變）
+# -------------------------------
 def simulate_insurance_strategy(total_assets, spouse_deduction, adult_children, other_dependents, disabled_people, parents, premium_ratio, premium):
     _, tax_no_insurance, _ = calculate_estate_tax(
         total_assets, spouse_deduction, adult_children, other_dependents, disabled_people, parents
@@ -94,6 +99,7 @@ def simulate_insurance_strategy(total_assets, spouse_deduction, adult_children, 
             "規劃效果": effect_not_taxed
         },
         "有規劃保單 (被實質課稅)": {
+            "預估遺產稅": tax_effective,   # 新增此項
             "家人總共取得": net_taxed,
             "規劃效果": effect_taxed
         }
@@ -149,7 +155,27 @@ def simulate_diversified_strategy(tax_due):
     }
 
 # -------------------------------
-# 原有主介面（含資產及家庭資訊輸入、計算結果、策略選擇）保持不變
+# Custom CSS
+# -------------------------------
+custom_css = """
+<style>
+div[data-baseweb="radio"] label {
+    font-size: 20px;
+}
+.effect {
+    color: green;
+    font-weight: bold;
+}
+.explanation {
+    font-size: 18px;
+    color: #0077CC;
+}
+</style>
+"""
+st.markdown(custom_css, unsafe_allow_html=True)
+
+# -------------------------------
+# 原有主介面（資產及家庭資訊輸入、計算結果、策略選擇）
 # -------------------------------
 st.markdown("<h1 class='main-header'>遺產稅試算＋建議</h1>", unsafe_allow_html=True)
 st.selectbox("選擇適用地區", ["台灣（2025年起）"], index=0)
@@ -238,6 +264,7 @@ if strategy == "保單規劃策略":
     st.markdown(f"- 規劃效果：<span class='effect'>較沒有規劃增加 {not_taxed['規劃效果']:,.2f} 萬元</span>", unsafe_allow_html=True)
     st.markdown("<h6 style='color: red;'>【有規劃保單（被實質課稅）】</h6>", unsafe_allow_html=True)
     taxed = insurance_results["有規劃保單 (被實質課稅)"]
+    st.markdown(f"- 預估遺產稅：**{taxed['預估遺產稅']:,.2f} 萬元**")
     st.markdown(f"- 家人總共取得：**{taxed['家人總共取得']:,.2f} 萬元**")
     st.markdown(f"- 規劃效果：<span class='effect'>較沒有規劃增加 {taxed['規劃效果']:,.2f} 萬元</span>", unsafe_allow_html=True)
 elif strategy == "提前贈與策略":
@@ -269,13 +296,13 @@ elif strategy == "分散配置策略":
     st.markdown(f"- 規劃效果：<span class='effect'>較沒有規劃增加 {effect_div['較沒有規劃增加']:,.2f} 萬元</span>", unsafe_allow_html=True)
 
 # -------------------------------
-# 下面「綜合計算與效益評估」案例區（原本硬編碼案例改為依據計算）
+# 綜合計算與效益評估案例區（固定以 3 億元、配偶、2 名子女為例）
 # -------------------------------
 st.markdown("---")
 st.markdown("<h2>綜合計算與效益評估</h2>", unsafe_allow_html=True)
 st.markdown("（以下以 3 億元總資產、有配偶及 2 名子女為例）")
 
-# 輸入區：僅針對案例模擬的三個參數
+# 案例模擬參數輸入
 premium_case = st.number_input("購買保險保費（萬）", min_value=0, max_value=100000, value=6000, step=100, key="case_premium")
 claim_case = st.number_input("保險理賠金（萬）", min_value=0, max_value=100000, value=9000, step=100, key="case_claim")
 gift_case = st.number_input("提前贈與金額（萬）", min_value=0, max_value=100000, value=2440, step=100, key="case_gift")
@@ -347,9 +374,7 @@ _, tax_case_combo_tax, _ = calculate_estate_tax(
 )
 net_case_combo_tax = effective_case_combo_tax - tax_case_combo_tax + gift_case
 
-# -------------------------------
-# 組合結果並呈現表格
-# -------------------------------
+# 組合案例結果
 case_data = {
     "規劃策略": [
         "沒有規劃",
@@ -377,9 +402,7 @@ df_case_results = pd.DataFrame(case_data)
 st.markdown("### 案例模擬結果")
 st.table(df_case_results)
 
-# -------------------------------
 # 圖表呈現（長條圖）
-# -------------------------------
 df_viz_case = df_case_results.copy()
 fig_bar_case = px.bar(df_viz_case, x="規劃策略", y="家人總共取得（萬）",
                       title="不同規劃策略下家人總共取得金額比較（案例）",
@@ -400,3 +423,11 @@ for idx, row in df_viz_case.iterrows():
         )
 fig_bar_case.update_layout(margin=dict(t=100), yaxis_range=[0, 40000])
 st.plotly_chart(fig_bar_case, use_container_width=True)
+
+# -------------------------------
+# 恢復行銷資訊區塊
+# -------------------------------
+st.markdown("---")
+st.markdown("### 想了解更多？")
+st.markdown("歡迎前往 **永傳家族辦公室**，我們提供專業的家族傳承與財富規劃服務。")
+st.markdown("[點此前往官網](https://www.gracefo.com)", unsafe_allow_html=True)
