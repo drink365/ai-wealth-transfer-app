@@ -56,7 +56,7 @@ def calculate_estate_tax(total_assets, spouse_deduction, adult_children, other_d
             taxable_at_this_rate = min(taxable_amount, bracket) - previous_bracket
             tax_due += taxable_at_this_rate * rate
             previous_bracket = bracket
-    return taxable_amount, round(tax_due, 2), deductions
+    return taxable_amount, int(round(tax_due, 2)), deductions
 
 def generate_basic_advice(taxable_amount, tax_due):
     advice = (
@@ -67,26 +67,26 @@ def generate_basic_advice(taxable_amount, tax_due):
     return advice
 
 # -------------------------------
-# 模擬策略函式（保險、贈與、分散配置） - 保持原有邏輯
+# 模擬策略函式（保險、贈與、分散配置）
 # -------------------------------
 def simulate_insurance_strategy(total_assets, spouse_deduction, adult_children, other_dependents, disabled_people, parents, premium_ratio, premium):
     _, tax_no_insurance, _ = calculate_estate_tax(
         total_assets, spouse_deduction, adult_children, other_dependents, disabled_people, parents
     )
     net_no_insurance = total_assets - tax_no_insurance
-    claim_amount = round(premium * premium_ratio, 2)
+    claim_amount = int(round(premium * premium_ratio))
     new_total_assets = total_assets - premium
     _, tax_new, _ = calculate_estate_tax(
         new_total_assets, spouse_deduction, adult_children, other_dependents, disabled_people, parents
     )
-    net_not_taxed = round((new_total_assets - tax_new) + claim_amount, 2)
-    effect_not_taxed = round(net_not_taxed - net_no_insurance, 2)
+    net_not_taxed = int(round((new_total_assets - tax_new) + claim_amount))
+    effect_not_taxed = net_not_taxed - net_no_insurance
     effective_estate = total_assets - premium + claim_amount
     _, tax_effective, _ = calculate_estate_tax(
         effective_estate, spouse_deduction, adult_children, other_dependents, disabled_people, parents
     )
-    net_taxed = round(effective_estate - tax_effective, 2)
-    effect_taxed = round(net_taxed - net_no_insurance, 2)
+    net_taxed = int(round(effective_estate - tax_effective))
+    effect_taxed = net_taxed - net_no_insurance
     return {
         "沒有規劃": {
             "遺產總額": total_assets,
@@ -112,12 +112,12 @@ def simulate_gift_strategy(total_assets, spouse_deduction, adult_children, other
     _, tax_sim, _ = calculate_estate_tax(
         simulated_total_assets, spouse_deduction, adult_children, other_dependents, disabled_people, parents
     )
-    net_after = round((simulated_total_assets - tax_sim) + total_gift, 2)
+    net_after = int(round((simulated_total_assets - tax_sim) + total_gift))
     _, tax_original, _ = calculate_estate_tax(
         total_assets, spouse_deduction, adult_children, other_dependents, disabled_people, parents
     )
     net_original = total_assets - tax_original
-    effect = round(net_after - net_original, 2)
+    effect = net_after - net_original
     return {
         "沒有規劃": {
             "遺產總額": total_assets,
@@ -127,7 +127,7 @@ def simulate_gift_strategy(total_assets, spouse_deduction, adult_children, other
         "提前贈與後": {
             "遺產總額": simulated_total_assets,
             "預估遺產稅": tax_sim,
-            "總贈與金額": round(total_gift, 2),
+            "總贈與金額": total_gift,
             "家人總共取得": net_after,
             "贈與年數": years
         },
@@ -138,8 +138,8 @@ def simulate_gift_strategy(total_assets, spouse_deduction, adult_children, other
 
 def simulate_diversified_strategy(tax_due):
     tax_factor = 0.90
-    simulated_tax_due = round(tax_due * tax_factor, 2)
-    saved = round(tax_due - simulated_tax_due, 2)
+    simulated_tax_due = int(round(tax_due * tax_factor))
+    saved = tax_due - simulated_tax_due
     percent_saved = round((saved / tax_due) * 100, 2) if tax_due else 0
     return {
         "沒有規劃": {
@@ -254,7 +254,7 @@ if strategy == "保單規劃策略":
         # 計算並顯示預估理賠金
         estimated_claim = premium * premium_ratio
         st.markdown(f"**預估理賠金：{estimated_claim:,.2f} 萬**")
-        st.session_state["estimated_claim"] = estimated_claim
+        st.session_state["estimated_claim"] = int(round(estimated_claim))
     if premium * premium_ratio < tax_due:
         st.error("警告：稅源不足！")
     insurance_results = simulate_insurance_strategy(
@@ -306,7 +306,7 @@ st.markdown("---")
 st.markdown("<h2>綜合計算與效益評估</h2>", unsafe_allow_html=True)
 st.markdown("（以下以上方用戶輸入的『遺產總額』及家庭成員狀況為例）")
 
-# 案例總資產採用上方用戶輸入的遺產總額及家庭狀況
+# 案例總資產及家庭狀況採用上方用戶輸入
 CASE_TOTAL_ASSETS = total_assets_input  
 CASE_SPOUSE = has_spouse
 CASE_ADULT_CHILDREN = adult_children_input
@@ -321,11 +321,12 @@ if default_premium > CASE_TOTAL_ASSETS:
 
 # 保險理賠金預設值：取自 session_state["estimated_claim"]，若無則預設 0
 default_claim = st.session_state.get("estimated_claim", 0)
+default_claim = int(default_claim)
 
 # 提前贈與金額預設值為 0
 default_gift = 0
 
-# 案例區輸入
+# 案例區輸入：保費、理賠金、提前贈與金額
 premium_case = st.number_input("購買保險保費（萬）", min_value=0, max_value=CASE_TOTAL_ASSETS, value=default_premium, step=100, key="case_premium")
 claim_case = st.number_input("保險理賠金（萬）", min_value=0, max_value=100000, value=default_claim, step=100, key="case_claim")
 gift_case = st.number_input("提前贈與金額（萬）", min_value=0, max_value=CASE_TOTAL_ASSETS - premium_case, value=default_gift, step=100, key="case_gift")
