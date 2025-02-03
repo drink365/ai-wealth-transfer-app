@@ -3,34 +3,34 @@ import pandas as pd
 import math
 
 def set_config():
-    # This must be the very first Streamlit command.
+    # 此指令必須放在最前面
     st.set_page_config(page_title="遺產稅試算工具", layout="wide")
 
-# Call set_config() immediately.
+# 立即呼叫 set_config()
 set_config()
 
 # === Constants ===
-EXEMPT_AMOUNT = 1333          # Exemption (in 10,000s)
-FUNERAL_EXPENSE = 138         # Funeral expense deduction (in 10,000s)
-SPOUSE_DEDUCTION_VALUE = 553  # Spouse deduction (in 10,000s)
-ADULT_CHILD_DEDUCTION = 56    # Deduction per direct descendant/ascendant (in 10,000s)
-PARENTS_DEDUCTION = 138       # Parents deduction (in 10,000s)
-DISABLED_DEDUCTION = 693      # Deduction for severe disability (in 10,000s)
-OTHER_DEPENDENTS_DEDUCTION = 56  # Deduction for other dependents (in 10,000s)
+EXEMPT_AMOUNT = 1333          # 免稅額（單位：萬）
+FUNERAL_EXPENSE = 138         # 喪葬費扣除額（單位：萬）
+SPOUSE_DEDUCTION_VALUE = 553  # 配偶扣除額（單位：萬）
+ADULT_CHILD_DEDUCTION = 56    # 直系血親卑親屬扣除額（單位：萬）
+PARENTS_DEDUCTION = 138       # 父母扣除額（單位：萬）
+DISABLED_DEDUCTION = 693      # 重度身心障礙扣除額（單位：萬）
+OTHER_DEPENDENTS_DEDUCTION = 56  # 其他撫養扣除額（單位：萬）
 
-# Taiwan's progressive tax brackets for 2025 (upper limit, rate)
+# 台灣 2025 年累進稅率結構 (上限, 稅率)
 TAX_BRACKETS = [
     (5621, 0.1),
     (11242, 0.15),
     (float('inf'), 0.2)
 ]
 
-# === Core Calculation Logic ===
+# === 核心計算邏輯 ===
 @st.cache_data
 def calculate_estate_tax(total_assets, spouse_deduction, adult_children, other_dependents, disabled_people, parents):
     """
-    Calculates estate tax.
-    Returns: (Taxable Estate, Estimated Tax, Total Deductions)
+    計算遺產稅。
+    回傳值：(課稅遺產淨額, 預估遺產稅, 總扣除額)
     """
     deductions = (
         spouse_deduction +
@@ -41,7 +41,7 @@ def calculate_estate_tax(total_assets, spouse_deduction, adult_children, other_d
         (parents * PARENTS_DEDUCTION)
     )
     if total_assets < EXEMPT_AMOUNT + deductions:
-        raise ValueError("Total deductions exceed the total estate. Please check your inputs!")
+        raise ValueError("扣除額總和超過總遺產，請檢查輸入數值！")
     
     taxable_amount = int(max(0, total_assets - EXEMPT_AMOUNT - deductions))
     tax_due = 0
@@ -55,7 +55,7 @@ def calculate_estate_tax(total_assets, spouse_deduction, adult_children, other_d
 
 def generate_basic_advice(taxable_amount, tax_due):
     """
-    Provides basic estate planning advice.
+    提供家族傳承策略建議文案。
     """
     advice = (
         "<span style='color: blue;'>1. 規劃保單</span>：透過保險預留稅源。<br><br>"
@@ -66,11 +66,11 @@ def generate_basic_advice(taxable_amount, tax_due):
 
 def simulate_insurance_strategy(total_assets, spouse_deduction, adult_children, other_dependents, disabled_people, parents, premium_ratio, premium):
     """
-    Simulates the insurance strategy:
-      - User inputs premium (in 10,000s) and claim ratio (default 1.3, meaning Claim Amount = Premium × 1.3).
-      - Two scenarios are simulated:
-          ① Not actually taxed: Claim amount is not included in the estate.
-          ② Actually taxed: Claim amount is included.
+    模擬保單策略：
+      - 使用者輸入保費（單位：萬）及理賠金比例（預設 1.3，表示理賠金 = 保費 × 1.3）。
+      - 模擬兩種情境：
+          ① 未被實質課稅：理賠金不納入遺產稅計算；
+          ② 被實質課稅：理賠金納入遺產稅計算。
     """
     _, tax_no_insurance, _ = calculate_estate_tax(
         total_assets, spouse_deduction, adult_children, other_dependents, disabled_people, parents
@@ -112,8 +112,8 @@ def simulate_insurance_strategy(total_assets, spouse_deduction, adult_children, 
 
 def simulate_gift_strategy(total_assets, spouse_deduction, adult_children, other_dependents, disabled_people, parents, years):
     """
-    Simulates the gift strategy:
-      - Assumes an annual tax-free gift limit of 244 (in 10,000s) and calculates the resulting estate.
+    模擬提前贈與策略：
+      - 假設每年免稅贈與額為 244 萬（單位：萬），計算規劃後遺產情形。
     """
     annual_gift_exemption = 244
     total_gift = years * annual_gift_exemption
@@ -147,8 +147,8 @@ def simulate_gift_strategy(total_assets, spouse_deduction, adult_children, other
 
 def simulate_diversified_strategy(tax_due):
     """
-    Simulates the diversified strategy:
-      - Assumes that with proper asset allocation, the final estate tax can be reduced to 90% of the original.
+    模擬分散配置策略：
+      - 假設透過合理資產配置，最終遺產稅能降至原稅額的 90%。
     """
     tax_factor = 0.90
     simulated_tax_due = round(tax_due * tax_factor, 2)
@@ -193,7 +193,7 @@ def main():
     
     st.selectbox("選擇適用地區", ["台灣（2025年起）"], index=0)
     
-    # Input Area: Assets and Family Information
+    # 輸入區：資產及家庭資訊
     with st.container():
         st.markdown("### 請輸入資產及家庭資訊", unsafe_allow_html=True)
         total_assets = st.number_input("遺產總額（萬）", min_value=1000, max_value=100000,
@@ -270,7 +270,7 @@ def main():
     st.markdown("## 家族傳承策略建議")
     st.markdown(generate_basic_advice(taxable_amount, tax_due), unsafe_allow_html=True)
     
-    # Use a radio button for strategy selection with no default (empty string as first option)
+    # 策略選擇
     strategy = st.radio("請選擇策略", options=["", "保單規劃策略", "提前贈與策略", "分散配置策略"],
                         index=0, horizontal=True)
     
@@ -280,16 +280,15 @@ def main():
         st.markdown(f"- 預估遺產稅：**{original_data['預估遺產稅']:,.2f} 萬元**")
         st.markdown(f"- 家人總共收到：**{original_data['家人總共收到']:,.2f} 萬元**")
         st.markdown("<h6 style='color: red;'>【保單規劃策略】</h6>", unsafe_allow_html=True)
-        # 說明與輸入群組：先顯示說明文字
-        st.markdown("<span class='explanation'>您可以自行調整保費與理賠金比例。</span>", unsafe_allow_html=True)
-        # 接著使用預設值作為初始輸入（預設保費向上取整到百萬）
-        default_premium = int(math.ceil((tax_due / 1.3) / 100) * 100)
-        default_ratio = 1.3
-        premium = st.number_input("請輸入保費（萬）", min_value=0, max_value=100000,
-                                  value=default_premium, step=100, key="insurance_premium")
-        premium_ratio = st.slider("請設定比例", min_value=1.0, max_value=3.0,
-                                  value=default_ratio, step=0.1, key="insurance_ratio")
-        # 顯示根據目前輸入計算的結果，標籤改為「假設保費」及「假設理賠金」
+        
+        # expander 群組：說明與輸入控制項
+        with st.expander("您可以自行調整保費與理賠金比例。"):
+            premium = st.number_input("請輸入保費（萬）", min_value=0, max_value=100000,
+                                      value=int(math.ceil((tax_due / 1.3) / 100) * 100), step=100, key="insurance_premium")
+            premium_ratio = st.slider("請設定比例", min_value=1.0, max_value=3.0,
+                                      value=1.3, step=0.1, key="insurance_ratio")
+        
+        # 根據使用者輸入顯示目前結果
         current_claim = premium * premium_ratio
         st.markdown(f"**假設保費：** {premium:,.2f} 萬元")
         st.markdown(f"**假設理賠金：** {current_claim:,.2f} 萬元")
