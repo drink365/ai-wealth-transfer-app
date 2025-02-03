@@ -31,6 +31,10 @@ def calculate_estate_tax(total_assets, spouse_deduction, adult_children, other_d
     """
     計算遺產稅。
     回傳值：(課稅遺產淨額, 預估遺產稅, 總扣除額)
+    
+    修改內容：
+      - 當免稅額加扣除額總和超過總遺產時，直接回傳課稅遺產淨額與預估遺產稅皆為 0，
+        不再拋出錯誤提醒。
     """
     deductions = (
         spouse_deduction +
@@ -41,8 +45,10 @@ def calculate_estate_tax(total_assets, spouse_deduction, adult_children, other_d
         (parents * PARENTS_DEDUCTION)
     )
     if total_assets < EXEMPT_AMOUNT + deductions:
-        raise ValueError("扣除額總和超過總遺產，請檢查輸入數值！")
-    
+        taxable_amount = 0
+        tax_due = 0
+        return taxable_amount, tax_due, deductions
+
     taxable_amount = int(max(0, total_assets - EXEMPT_AMOUNT - deductions))
     tax_due = 0
     previous_bracket = 0
@@ -207,29 +213,18 @@ def main():
                                          value=0, help="請輸入直系血親或卑親屬人數")
         parents = st.number_input("父母數（每人 138 萬，最多 2 人）", min_value=0, max_value=2,
                                   value=0, help="請輸入父母人數")
-        max_disabled = max(1, adult_children + parents + (1 if has_spouse else 0))
+        # 更新重度以上身心障礙者數的限制：不得大於 配偶數 + 直系血親卑親屬數 + 父母數
+        max_disabled = (1 if has_spouse else 0) + adult_children + parents
         disabled_people = st.number_input("重度以上身心障礙者數（每人 693 萬）", min_value=0, max_value=max_disabled,
                                           value=0, help="請輸入重度以上身心障礙者人數")
         other_dependents = st.number_input("受撫養之兄弟姊妹、祖父母數（每人 56 萬）", min_value=0, max_value=5,
                                            value=0, help="請輸入兄弟姊妹或祖父母人數")
     
-    total_deductions = (spouse_deduction +
-                        FUNERAL_EXPENSE +
-                        (disabled_people * DISABLED_DEDUCTION) +
-                        (adult_children * ADULT_CHILD_DEDUCTION) +
-                        (other_dependents * OTHER_DEPENDENTS_DEDUCTION) +
-                        (parents * PARENTS_DEDUCTION))
-    if total_assets < EXEMPT_AMOUNT + total_deductions:
-        st.error("扣除額總和超過總遺產，請檢查輸入數值！")
-        return
-    
-    try:
-        taxable_amount, tax_due, _ = calculate_estate_tax(
-            total_assets, spouse_deduction, adult_children, other_dependents, disabled_people, parents
-        )
-    except Exception as e:
-        st.error(f"計算錯誤：{e}")
-        return
+    # 移除原本直接檢查總扣除額是否超過總遺產的錯誤提醒，
+    # 改由 calculate_estate_tax 函數內部判斷，若超過則回傳 0
+    taxable_amount, tax_due, total_deductions = calculate_estate_tax(
+        total_assets, spouse_deduction, adult_children, other_dependents, disabled_people, parents
+    )
 
     st.markdown("<div class='data-card'>", unsafe_allow_html=True)
     st.subheader(f"預估遺產稅：{tax_due:,.2f} 萬元")
