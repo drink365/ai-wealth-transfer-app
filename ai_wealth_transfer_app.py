@@ -442,7 +442,7 @@ for idx, row in df_viz_case.iterrows():
             font=dict(color="yellow", size=14),
             yshift=-50
         )
-fig_bar_case.update_layout(margin=dict(t=100), yaxis_range=[0, 40000])
+fig_bar_case.update_layout(margin=dict(t=100), yaxis_range=[0, 40000], autosize=True)
 st.plotly_chart(fig_bar_case, use_container_width=True)
 
 # -------------------------------
