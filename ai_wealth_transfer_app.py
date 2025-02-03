@@ -155,10 +155,6 @@ def simulate_diversified_strategy(tax_due):
     }
 
 # -------------------------------
-# 取消自訂字體設定，恢復 Streamlit 預設字體
-# -------------------------------
-
-# -------------------------------
 # 原有主介面（資產及家庭資訊輸入、計算結果、策略選擇）
 # -------------------------------
 st.markdown("<h1 class='main-header'>遺產稅試算＋建議</h1>", unsafe_allow_html=True)
@@ -408,11 +404,11 @@ case_data = {
 }
 df_case_results = pd.DataFrame(case_data)
 st.markdown("### 案例模擬結果")
-# 新增家庭狀況說明，若有配偶則列出
+# 新增家庭狀況說明，若有配偶則列出「配偶」；其他直接顯示數值，例如 "子女2人"
 family_status = ""
 if CASE_SPOUSE:
     family_status += "配偶, "
-family_status += f"子女：{CASE_ADULT_CHILDREN} 人, 父母：{CASE_PARENTS} 人, 重度身心障礙者：{CASE_DISABLED} 人, 其他撫養：{CASE_OTHER} 人"
+family_status += f"子女{CASE_ADULT_CHILDREN}人, 父母{CASE_PARENTS}人, 重度身心障礙者{CASE_DISABLED}人, 其他撫養{CASE_OTHER}人"
 st.markdown(f"**總資產：{CASE_TOTAL_ASSETS:,.2f} 萬**  |  **家庭狀況：{family_status}**")
 st.table(df_case_results)
 
@@ -435,7 +431,6 @@ for idx, row in df_viz_case.iterrows():
             font=dict(color="yellow", size=14),
             yshift=-50
         )
-# 自動依據最大數值增加一個刻度
 max_value = df_viz_case["家人總共取得（萬）"].max()
 dtick = max_value / 10
 fig_bar_case.update_layout(margin=dict(t=100), yaxis_range=[0, max_value + dtick], autosize=True)
