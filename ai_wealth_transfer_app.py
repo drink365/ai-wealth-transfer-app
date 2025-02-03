@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import math
 import plotly.express as px
-import plotly.graph_objects as go
 
 def set_config():
     # 此指令必須放在最前面
@@ -352,7 +351,7 @@ def main():
     st.table(df_case)
     
     # --- 視覺化圖表 ---
-    # 1. 長條圖：比較各策略下家人總共取得金額
+    # 長條圖：比較各策略下家人總共取得金額，並在長條上方標示與「沒有規劃」的差額
     df_viz = pd.DataFrame({
         "規劃策略": ["沒有規劃", "提前贈與", "購買保險", "提前贈與＋購買保險", "提前贈與＋購買保險（被實質課稅）"],
         "家人總共取得": [25270, 25758, 29470, 29947, 28147]
@@ -361,27 +360,23 @@ def main():
                      title="不同策略下家人總共取得金額比較",
                      text="家人總共取得")
     fig_bar.update_traces(texttemplate='%{text}', textposition='outside')
-    st.plotly_chart(fig_bar, use_container_width=True)
     
-    # 2. Waterfall 瀑布圖：以增減差異呈現各策略相對於【沒有規劃】的效果
-    # 設定第一筆為絕對值，其餘以差異表示
+    # 計算「沒有規劃」的基準金額
     baseline = df_viz.loc[df_viz["規劃策略"]=="沒有規劃", "家人總共取得"].iloc[0]
-    values = df_viz["家人總共取得"].tolist()
-    # 差異數據：第一筆為絕對值，其他為與 baseline 的差值
-    differences = [values[0]] + [v - baseline for v in values[1:]]
-    fig_waterfall = go.Figure(go.Waterfall(
-        measure = ["absolute"] + ["relative"]*(len(values)-1),
-        x = df_viz["規劃策略"],
-        y = differences,
-        text = [f"{v}" for v in values],
-        textposition = "outside",
-        connector = {"line": {"color": "rgb(63, 63, 63)"}}
-    ))
-    fig_waterfall.update_layout(
-        title = "Waterfall 瀑布圖：各策略相對於【沒有規劃】的增減差異",
-        showlegend = True
-    )
-    st.plotly_chart(fig_waterfall, use_container_width=True)
+    for idx, row in df_viz.iterrows():
+        if row["規劃策略"] != "沒有規劃":
+            diff = row["家人總共取得"] - baseline
+            diff_text = f"+{diff}" if diff >= 0 else f"{diff}"
+            fig_bar.add_annotation(
+                x=row["規劃策略"],
+                y=row["家人總共取得"],
+                text=diff_text,
+                showarrow=False,
+                font=dict(color="red", size=14),
+                yshift=-30  # 調整位置，根據需要微調
+            )
+    
+    st.plotly_chart(fig_bar, use_container_width=True)
     
     # 行銷資訊區塊
     st.markdown("---")
