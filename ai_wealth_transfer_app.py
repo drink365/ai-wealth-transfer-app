@@ -32,9 +32,8 @@ def calculate_estate_tax(total_assets, spouse_deduction, adult_children, other_d
     計算遺產稅。
     回傳值：(課稅遺產淨額, 預估遺產稅, 總扣除額)
     
-    修改內容：
-      - 當免稅額加扣除額總和超過總遺產時，直接回傳課稅遺產淨額與預估遺產稅皆為 0，
-        不再拋出錯誤提醒。
+    修改重點：
+      - 當 免稅額 + 各項扣除額 總和超過總遺產時，直接回傳 0（不再拋出錯誤提醒）
     """
     deductions = (
         spouse_deduction +
@@ -45,9 +44,7 @@ def calculate_estate_tax(total_assets, spouse_deduction, adult_children, other_d
         (parents * PARENTS_DEDUCTION)
     )
     if total_assets < EXEMPT_AMOUNT + deductions:
-        taxable_amount = 0
-        tax_due = 0
-        return taxable_amount, tax_due, deductions
+        return 0, 0, deductions
 
     taxable_amount = int(max(0, total_assets - EXEMPT_AMOUNT - deductions))
     tax_due = 0
@@ -213,15 +210,14 @@ def main():
                                          value=0, help="請輸入直系血親或卑親屬人數")
         parents = st.number_input("父母數（每人 138 萬，最多 2 人）", min_value=0, max_value=2,
                                   value=0, help="請輸入父母人數")
-        # 更新重度以上身心障礙者數的限制：不得大於 配偶數 + 直系血親卑親屬數 + 父母數
+        # 更新重度以上身心障礙者數的限制：不得大於 配偶 + 直系血親卑親屬 + 父母 人數
         max_disabled = (1 if has_spouse else 0) + adult_children + parents
         disabled_people = st.number_input("重度以上身心障礙者數（每人 693 萬）", min_value=0, max_value=max_disabled,
                                           value=0, help="請輸入重度以上身心障礙者人數")
         other_dependents = st.number_input("受撫養之兄弟姊妹、祖父母數（每人 56 萬）", min_value=0, max_value=5,
                                            value=0, help="請輸入兄弟姊妹或祖父母人數")
     
-    # 移除原本直接檢查總扣除額是否超過總遺產的錯誤提醒，
-    # 改由 calculate_estate_tax 函數內部判斷，若超過則回傳 0
+    # 直接由 calculate_estate_tax 判斷，若免稅額加扣除額總和超過總遺產則回傳 0
     taxable_amount, tax_due, total_deductions = calculate_estate_tax(
         total_assets, spouse_deduction, adult_children, other_dependents, disabled_people, parents
     )
