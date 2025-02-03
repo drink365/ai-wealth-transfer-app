@@ -163,21 +163,21 @@ st.selectbox("選擇適用地區", ["台灣（2025年起）"], index=0)
 with st.container():
     st.markdown("### 請輸入資產及家庭資訊", unsafe_allow_html=True)
     total_assets_input = st.number_input("總資產（萬）", min_value=1000, max_value=100000,
-                                       value=5000, step=100,
-                                       help="請輸入您的總資產（單位：萬）")
+                                           value=5000, step=100,
+                                           help="請輸入您的總資產（單位：萬）")
     st.markdown("---")
     st.markdown("#### 請輸入家庭成員數")
     has_spouse = st.checkbox("是否有配偶（扣除額 553 萬）", value=False)
     spouse_deduction = SPOUSE_DEDUCTION_VALUE if has_spouse else 0
     adult_children_input = st.number_input("直系血親卑親屬數（每人 56 萬）", min_value=0, max_value=10,
-                                         value=0, help="請輸入直系血親或卑親屬人數")
+                                           value=0, help="請輸入直系血親或卑親屬人數")
     parents_input = st.number_input("父母數（每人 138 萬，最多 2 人）", min_value=0, max_value=2,
-                                  value=0, help="請輸入父母人數")
+                                    value=0, help="請輸入父母人數")
     max_disabled = (1 if has_spouse else 0) + adult_children_input + parents_input
     disabled_people_input = st.number_input("重度以上身心障礙者數（每人 693 萬）", min_value=0, max_value=max_disabled,
-                                          value=0, help="請輸入重度以上身心障礙者人數")
+                                            value=0, help="請輸入重度以上身心障礙者人數")
     other_dependents_input = st.number_input("受撫養之兄弟姊妹、祖父母數（每人 56 萬）", min_value=0, max_value=5,
-                                           value=0, help="請輸入兄弟姊妹或祖父母人數")
+                                             value=0, help="請輸入兄弟姊妹或祖父母人數")
 
 taxable_amount, tax_due, total_deductions = calculate_estate_tax(
     total_assets_input, spouse_deduction, adult_children_input, other_dependents_input, disabled_people_input, parents_input
@@ -301,7 +301,10 @@ if default_premium > CASE_TOTAL_ASSETS:
 
 # 保險理賠金預設值：直接從 session_state["estimated_claim"] 取得
 default_claim = st.session_state.get("estimated_claim")
-    
+if default_claim is None:
+    default_claim = 0
+else:
+    default_claim = int(default_claim)
 
 # 提前贈與金額預設值為 0
 default_gift = 0
@@ -400,6 +403,10 @@ case_data = {
     ]
 }
 df_case_results = pd.DataFrame(case_data)
+# 新增「規劃效益」欄位：各規劃情況與「沒有規劃」的差額
+baseline_value = df_case_results.loc[df_case_results["規劃策略"]=="沒有規劃", "家人總共取得（萬）"].iloc[0]
+df_case_results["規劃效益"] = df_case_results["家人總共取得（萬）"] - baseline_value
+
 st.markdown("### 案例模擬結果")
 # 新增家庭狀況說明，若有配偶則列出「配偶」；其他直接顯示數值，例如 "子女2人"
 family_status = ""
