@@ -76,7 +76,7 @@ def calculate_estate_tax(total_assets: float, spouse: bool, adult_children: int,
             taxable_at_rate = min(taxable_amount, bracket) - previous_bracket
             tax_due += taxable_at_rate * rate
             previous_bracket = bracket
-    return taxable_amount, round(tax_due, 2), deductions
+    return taxable_amount, round(tax_due, 0), deductions
 
 def generate_basic_advice() -> str:
     """
@@ -103,33 +103,33 @@ def simulate_insurance_strategy(total_assets: float, spouse: bool, adult_childre
     net_no_insurance = total_assets - tax_no_insurance
 
     # 模擬購買保險後：保費支出且理賠金補回
-    claim_amount = round(premium * premium_ratio)
+    claim_amount = round(premium * premium_ratio, 0)
     new_total_assets = total_assets - premium
     _, tax_new, _ = calculate_estate_tax(new_total_assets, spouse, adult_children, other_dependents, disabled_people, parents)
-    net_not_taxed = round(new_total_assets - tax_new + claim_amount)
+    net_not_taxed = round(new_total_assets - tax_new + claim_amount, 0)
     effect_not_taxed = net_not_taxed - net_no_insurance
 
     # 若將理賠金也納入課稅基礎
     effective_estate = total_assets - premium + claim_amount
     _, tax_effective, _ = calculate_estate_tax(effective_estate, spouse, adult_children, other_dependents, disabled_people, parents)
-    net_taxed = round(effective_estate - tax_effective)
+    net_taxed = round(effective_estate - tax_effective, 0)
     effect_taxed = net_taxed - net_no_insurance
 
     return {
         "沒有規劃": {
-            "總資產": total_assets,
-            "預估遺產稅": tax_no_insurance,
-            "家人總共取得": net_no_insurance
+            "總資產": int(total_assets),
+            "預估遺產稅": int(tax_no_insurance),
+            "家人總共取得": int(net_no_insurance)
         },
         "有規劃保單": {
-            "預估遺產稅": tax_new,
-            "家人總共取得": net_not_taxed,
-            "規劃效果": effect_not_taxed
+            "預估遺產稅": int(tax_new),
+            "家人總共取得": int(net_not_taxed),
+            "規劃效果": int(effect_not_taxed)
         },
         "有規劃保單 (被實質課稅)": {
-            "預估遺產稅": tax_effective,
-            "家人總共取得": net_taxed,
-            "規劃效果": effect_taxed
+            "預估遺產稅": int(tax_effective),
+            "家人總共取得": int(net_taxed),
+            "規劃效果": int(effect_taxed)
         }
     }
 
@@ -143,7 +143,7 @@ def simulate_gift_strategy(total_assets: float, spouse: bool, adult_children: in
     total_gift = years * annual_gift_exemption
     simulated_total_assets = max(total_assets - total_gift, 0)
     _, tax_sim, _ = calculate_estate_tax(simulated_total_assets, spouse, adult_children, other_dependents, disabled_people, parents)
-    net_after = round(simulated_total_assets - tax_sim + total_gift)
+    net_after = round(simulated_total_assets - tax_sim + total_gift, 0)
 
     _, tax_original, _ = calculate_estate_tax(total_assets, spouse, adult_children, other_dependents, disabled_people, parents)
     net_original = total_assets - tax_original
@@ -151,19 +151,19 @@ def simulate_gift_strategy(total_assets: float, spouse: bool, adult_children: in
 
     return {
         "沒有規劃": {
-            "總資產": total_assets,
-            "預估遺產稅": tax_original,
-            "家人總共取得": net_original
+            "總資產": int(total_assets),
+            "預估遺產稅": int(tax_original),
+            "家人總共取得": int(net_original)
         },
         "提前贈與後": {
-            "總資產": simulated_total_assets,
-            "預估遺產稅": tax_sim,
-            "總贈與金額": total_gift,
-            "家人總共取得": net_after,
+            "總資產": int(simulated_total_assets),
+            "預估遺產稅": int(tax_sim),
+            "總贈與金額": int(total_gift),
+            "家人總共取得": int(net_after),
             "贈與年數": years
         },
         "規劃效果": {
-            "較沒有規劃增加": effect
+            "較沒有規劃增加": int(effect)
         }
     }
 
@@ -172,18 +172,18 @@ def simulate_diversified_strategy(tax_due: float) -> Dict[str, Any]:
     模擬分散配置策略（降低稅率至90%）的效益
     """
     tax_factor = 0.90
-    simulated_tax_due = round(tax_due * tax_factor)
+    simulated_tax_due = round(tax_due * tax_factor, 0)
     saved = tax_due - simulated_tax_due
     percent_saved = round((saved / tax_due) * 100, 2) if tax_due else 0
     return {
         "沒有規劃": {
-            "預估遺產稅": tax_due
+            "預估遺產稅": int(tax_due)
         },
         "分散配置後": {
-            "預估遺產稅": simulated_tax_due
+            "預估遺產稅": int(simulated_tax_due)
         },
         "規劃效果": {
-            "較沒有規劃減少": saved,
+            "較沒有規劃減少": int(saved),
             "節省百分比": percent_saved
         }
     }
@@ -218,32 +218,36 @@ taxable_amount, tax_due, total_deductions = calculate_estate_tax(
     other_dependents_input, disabled_people_input, parents_input
 )
 
-st.markdown("<h3>預估遺產稅：{0:,.2f} 萬元</h3>".format(tax_due), unsafe_allow_html=True)
+st.markdown("<h3>預估遺產稅：{0:,.0f} 萬元</h3>".format(tax_due), unsafe_allow_html=True)
 
 # 資產、扣除項目、稅務計算區塊（分成3欄呈現）
 col1, col2, col3 = st.columns(3)
 with col1:
     st.markdown("**資產概況**")
-    df_assets = pd.DataFrame({"項目": ["總資產"], "金額（萬）": [total_assets_input]})
+    df_assets = pd.DataFrame({"項目": ["總資產"], "金額（萬）": [int(total_assets_input)]})
     st.table(df_assets)
 with col2:
     st.markdown("**扣除項目**")
     df_deductions = pd.DataFrame({
         "項目": ["免稅額", "喪葬費扣除額", "配偶扣除額", "直系血親卑親屬扣除額", "父母扣除額", "重度身心障礙扣除額", "其他撫養扣除額"],
         "金額（萬）": [
-            EXEMPT_AMOUNT, FUNERAL_EXPENSE, SPOUSE_DEDUCTION_VALUE if has_spouse else 0,
+            EXEMPT_AMOUNT,
+            FUNERAL_EXPENSE,
+            SPOUSE_DEDUCTION_VALUE if has_spouse else 0,
             adult_children_input * ADULT_CHILD_DEDUCTION,
             parents_input * PARENTS_DEDUCTION,
             disabled_people_input * DISABLED_DEDUCTION,
             other_dependents_input * OTHER_DEPENDENTS_DEDUCTION
         ]
     })
+    # 轉換為整數格式
+    df_deductions["金額（萬）"] = df_deductions["金額（萬）"].astype(int)
     st.table(df_deductions)
 with col3:
     st.markdown("**稅務計算**")
     df_tax = pd.DataFrame({
         "項目": ["課稅遺產淨額", "預估遺產稅"],
-        "金額（萬）": [taxable_amount, tax_due]
+        "金額（萬）": [int(taxable_amount), int(tax_due)]
     })
     st.table(df_tax)
 
@@ -362,18 +366,18 @@ case_data = {
         "提前贈與＋購買保險（被實質課稅）"
     ],
     "遺產稅（萬）": [
-        tax_case_no_plan,
-        tax_case_gift,
-        tax_case_insurance,
-        tax_case_combo_not_tax,
-        tax_case_combo_tax
+        int(tax_case_no_plan),
+        int(tax_case_gift),
+        int(tax_case_insurance),
+        int(tax_case_combo_not_tax),
+        int(tax_case_combo_tax)
     ],
     "家人總共取得（萬）": [
-        net_case_no_plan,
-        net_case_gift,
-        net_case_insurance,
-        net_case_combo_not_tax,
-        net_case_combo_tax
+        int(net_case_no_plan),
+        int(net_case_gift),
+        int(net_case_insurance),
+        int(net_case_combo_not_tax),
+        int(net_case_combo_tax)
     ]
 }
 df_case_results = pd.DataFrame(case_data)
@@ -385,7 +389,7 @@ family_status = ""
 if CASE_SPOUSE:
     family_status += "配偶, "
 family_status += f"子女{CASE_ADULT_CHILDREN}人, 父母{CASE_PARENTS}人, 重度身心障礙者{CASE_DISABLED}人, 其他撫養{CASE_OTHER}人"
-st.markdown(f"**總資產：{CASE_TOTAL_ASSETS:,.2f} 萬**  |  **家庭狀況：{family_status}**")
+st.markdown(f"**總資產：{int(CASE_TOTAL_ASSETS):,d} 萬**  |  **家庭狀況：{family_status}**")
 st.table(df_case_results)
 
 # -------------------------------
@@ -399,12 +403,12 @@ fig_bar_case = px.bar(
     title="不同規劃策略下家人總共取得金額比較（案例）",
     text="家人總共取得（萬）"
 )
-fig_bar_case.update_traces(texttemplate='%{text}', textposition='outside')
+fig_bar_case.update_traces(texttemplate='%{text:.0f}', textposition='outside')
 baseline_case = df_viz_case.loc[df_viz_case["規劃策略"]=="沒有規劃", "家人總共取得（萬）"].iloc[0]
 for idx, row in df_viz_case.iterrows():
     if row["規劃策略"] != "沒有規劃":
         diff = row["家人總共取得（萬）"] - baseline_case
-        diff_text = f"+{diff}" if diff >= 0 else f"{diff}"
+        diff_text = f"+{int(diff)}" if diff >= 0 else f"{int(diff)}"
         fig_bar_case.add_annotation(
             x=row["規劃策略"],
             y=row["家人總共取得（萬）"],
