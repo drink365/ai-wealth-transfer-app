@@ -241,16 +241,16 @@ if strategy == "保單規劃策略":
         total_assets_input, spouse_deduction, adult_children_input, other_dependents_input, disabled_people_input, parents_input,
         premium_ratio, premium
     )
+    st.markdown("<h6 style='color: red;'>【有規劃保單 (被實質課稅)】</h6>", unsafe_allow_html=True)
+    taxed = insurance_results["有規劃保單 (被實質課稅)"]
+    st.markdown(f"- 預估遺產稅：**{taxed['預估遺產稅']:,.2f} 萬元**")
+    st.markdown(f"- 家人總共取得：**{taxed['家人總共取得']:,.2f} 萬元**")
+    st.markdown(f"- 規劃效果：<span class='effect'>較沒有規劃增加 {taxed['規劃效果']:,.2f} 萬元</span>", unsafe_allow_html=True)
     st.markdown("<h6 style='color: red;'>【有規劃保單】</h6>", unsafe_allow_html=True)
     not_taxed = insurance_results["有規劃保單"]
     st.markdown(f"- 預估遺產稅：**{not_taxed['預估遺產稅']:,.2f} 萬元**")
     st.markdown(f"- 家人總共取得：**{not_taxed['家人總共取得']:,.2f} 萬元**")
     st.markdown(f"- 規劃效果：<span class='effect'>較沒有規劃增加 {not_taxed['規劃效果']:,.2f} 萬元</span>", unsafe_allow_html=True)
-    st.markdown("<h6 style='color: red;'>【有規劃保單（被實質課稅）】</h6>", unsafe_allow_html=True)
-    taxed = insurance_results["有規劃保單 (被實質課稅)"]
-    st.markdown(f"- 預估遺產稅：**{taxed['預估遺產稅']:,.2f} 萬元**")
-    st.markdown(f"- 家人總共取得：**{taxed['家人總共取得']:,.2f} 萬元**")
-    st.markdown(f"- 規劃效果：<span class='effect'>較沒有規劃增加 {taxed['規劃效果']:,.2f} 萬元</span>", unsafe_allow_html=True)
 elif strategy == "提前贈與策略":
     st.markdown("<h6 style='color: red;'>【沒有規劃】</h6>", unsafe_allow_html=True)
     st.markdown(f"- 總資產：**{original_data['總資產']:,.2f} 萬元**")
@@ -350,7 +350,7 @@ _, tax_case_insurance, _ = calculate_estate_tax(
 )
 net_case_insurance = effective_case_insurance - tax_case_insurance + claim_case
 
-# 4. 提前贈與＋購買保險
+# 4. 提前贈與＋購買保險（未被實質課稅）
 effective_case_combo_not_tax = CASE_TOTAL_ASSETS - gift_case - premium_case
 _, tax_case_combo_not_tax, _ = calculate_estate_tax(
     effective_case_combo_not_tax,
@@ -380,7 +380,7 @@ case_data = {
         "沒有規劃",
         "提前贈與",
         "購買保險",
-        "提前贈與＋購買保險",
+        "提前贈與＋購買保險（未被實質課稅）",
         "提前贈與＋購買保險（被實質課稅）"
     ],
     "遺產稅（萬）": [
