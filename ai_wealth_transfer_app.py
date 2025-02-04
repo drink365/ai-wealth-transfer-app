@@ -7,13 +7,15 @@ import plotly.express as px
 st.set_page_config(page_title="遺產稅試算＋建議", layout="wide")
 
 # -------------------------------
-# 頁面顏色管理 CSS
+# 頁面顏色與字體管理 CSS
 # -------------------------------
 custom_css = """
 <style>
 body {
     background-color: #F0F8FF;
     color: #333333;
+    font-size: 18px;  /* 調整全站基礎字體大小 */
+    line-height: 1.6;
 }
 h1.main-header {
     color: #003366;
@@ -22,6 +24,11 @@ h1.main-header {
 }
 h2 {
     color: #003366;
+    font-size: 28px;
+}
+h3 {
+    color: #003366;
+    font-size: 24px;
 }
 .data-card {
     background-color: #FFFFFF;
@@ -32,6 +39,7 @@ h2 {
 .effect {
     color: #008000;
     font-weight: bold;
+    font-size: 18px;
 }
 </style>
 """
