@@ -153,11 +153,11 @@ def simulate_diversified_strategy(tax_due):
 # -------------------------------
 # 原有主介面：資產及家庭資訊輸入與稅務計算
 # -------------------------------
-st.markdown("<h1 class='main-header'>遺產稅試算＋建議</h1>", unsafe_allow_html=True)
+st.markdown("<h1 class='main-header'>遺產稅試算＋建議</h1>")
 st.selectbox("選擇適用地區", ["台灣（2025年起）"], index=0)
 
 with st.container():
-    st.markdown("### 請輸入資產及家庭資訊", unsafe_allow_html=True)
+    st.markdown("### 請輸入資產及家庭資訊")
     total_assets_input = st.number_input("總資產（萬）", min_value=1000, max_value=100000,
                                            value=5000, step=100,
                                            help="請輸入您的總資產（單位：萬）")
@@ -179,12 +179,12 @@ taxable_amount, tax_due, total_deductions = calculate_estate_tax(
     total_assets_input, spouse_deduction, adult_children_input, other_dependents_input, disabled_people_input, parents_input
 )
 
-st.markdown("<h3>預估遺產稅：{0:,.2f} 萬元</h3>".format(tax_due), unsafe_allow_html=True)
+st.markdown("<h3>預估遺產稅：{0:,.2f} 萬元</h3>".format(tax_due))
 col1, col2, col3 = st.columns(3)
 with col1:
     st.markdown("**資產概況**")
     df_assets = pd.DataFrame({"項目": ["總資產"], "金額（萬）": [total_assets_input]})
-    st.table(df_assets)
+    st.table(df_assets.style.format({"金額（萬）": "{:,.2f}"}))
 with col2:
     st.markdown("**扣除項目**")
     df_deductions = pd.DataFrame({
@@ -195,14 +195,14 @@ with col2:
             disabled_people_input * DISABLED_DEDUCTION, other_dependents_input * OTHER_DEPENDENTS_DEDUCTION
         ]
     })
-    st.table(df_deductions)
+    st.table(df_deductions.style.format({"金額（萬）": "{:,.2f}"}))
 with col3:
     st.markdown("**稅務計算**")
     df_tax = pd.DataFrame({
         "項目": ["課稅遺產淨額", "預估遺產稅"],
         "金額（萬）": [taxable_amount, tax_due]
     })
-    st.table(df_tax.round(2))
+    st.table(df_tax.style.format({"金額（萬）": "{:,.2f}"}))
 st.markdown("---")
 
 original_data = {
@@ -352,7 +352,11 @@ if CASE_SPOUSE:
     family_status += "配偶, "
 family_status += f"子女{CASE_ADULT_CHILDREN}人, 父母{CASE_PARENTS}人, 重度身心障礙者{CASE_DISABLED}人, 其他撫養{CASE_OTHER}人"
 st.markdown(f"**總資產：{CASE_TOTAL_ASSETS:,.2f} 萬**  |  **家庭狀況：{family_status}**")
-st.table(df_case_results)
+st.table(df_case_results.style.format({
+    "遺產稅（萬）": "{:,.2f}",
+    "家人總共取得（萬）": "{:,.2f}",
+    "規劃效益": "{:,.2f}"
+}))
 
 # 圖表呈現（長條圖）
 df_viz_case = df_case_results.copy()
@@ -364,7 +368,7 @@ baseline_case = df_viz_case.loc[df_viz_case["規劃策略"]=="沒有規劃", "�
 for idx, row in df_viz_case.iterrows():
     if row["規劃策略"] != "沒有規劃":
         diff = row["家人總共取得（萬）"] - baseline_case
-        diff_text = f"+{diff}" if diff >= 0 else f"{diff}"
+        diff_text = f"+{diff:,.2f}" if diff >= 0 else f"{diff:,.2f}"
         fig_bar_case.add_annotation(
             x=row["規劃策略"],
             y=row["家人總共取得（萬）"],
