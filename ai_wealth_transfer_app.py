@@ -4,6 +4,37 @@ import math
 import plotly.express as px
 
 # -------------------------------
+# 頁面顏色管理 CSS
+# -------------------------------
+custom_css = """
+<style>
+body {
+    background-color: #F0F8FF;
+    color: #333333;
+}
+h1.main-header {
+    color: #003366;
+    font-size: 36px;
+    font-weight: bold;
+}
+h2 {
+    color: #003366;
+}
+.data-card {
+    background-color: #FFFFFF;
+    border: 1px solid #CCCCCC;
+    padding: 15px;
+    border-radius: 5px;
+}
+.effect {
+    color: #008000;
+    font-weight: bold;
+}
+</style>
+"""
+st.markdown(custom_css, unsafe_allow_html=True)
+
+# -------------------------------
 # 設定頁面
 # -------------------------------
 def set_config():
@@ -57,6 +88,14 @@ def calculate_estate_tax(total_assets, spouse_deduction, adult_children, other_d
             tax_due += taxable_at_this_rate * rate
             previous_bracket = bracket
     return taxable_amount, int(round(tax_due, 2)), deductions
+
+def generate_basic_advice(taxable_amount, tax_due):
+    advice = (
+        "<span style='color: blue;'>1. 規劃保單</span>：透過保險預留稅源。<br><br>"
+        "<span style='color: blue;'>2. 提前贈與</span>：利用免稅贈與逐年轉移財富。<br><br>"
+        "<span style='color: blue;'>3. 分散配置</span>：透過合理資產配置降低稅率至90%。"
+    )
+    return advice
 
 # -------------------------------
 # 模擬策略函式（保險、贈與、分散配置）
@@ -210,7 +249,7 @@ original_data = {
 }
 
 # -------------------------------
-# 家族傳承策略建議區：僅保留三行策略文字
+# 家族傳承策略建議區：僅保留三行策略說明文字
 # -------------------------------
 st.markdown("## 家族傳承策略建議")
 st.markdown("""
