@@ -210,8 +210,7 @@ taxable_amount, tax_due, total_deductions = calculate_estate_tax(
     total_assets_input, spouse_deduction, adult_children_input, other_dependents_input, disabled_people_input, parents_input
 )
 
-st.markdown("<div class='data-card'>", unsafe_allow_html=True)
-st.subheader(f"預估遺產稅：{tax_due:,.2f} 萬元")
+st.markdown("<h3>預估遺產稅：{0:,.2f} 萬元</h3>".format(tax_due), unsafe_allow_html=True)
 col1, col2, col3 = st.columns(3)
 with col1:
     st.markdown("**資產概況**")
@@ -235,7 +234,6 @@ with col3:
         "金額（萬）": [taxable_amount, tax_due]
     })
     st.table(df_tax.round(2))
-st.markdown("</div>", unsafe_allow_html=True)
 st.markdown("---")
 
 original_data = {
@@ -259,7 +257,7 @@ st.markdown("""
 # -------------------------------
 st.markdown("---")
 st.markdown("<h2>綜合計算與效益評估</h2>", unsafe_allow_html=True)
-st.markdown("（以下以上方用戶輸入的『總資產』及家庭成員狀況為例）")
+st.markdown("請輸入規劃保單及提前贈與的金額")
 
 # 案例總資產及家庭狀況採用上方用戶輸入
 CASE_TOTAL_ASSETS = total_assets_input  
