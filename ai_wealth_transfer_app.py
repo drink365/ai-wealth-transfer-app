@@ -28,10 +28,14 @@ TAX_BRACKETS = [
 ]
 
 # -------------------------------
-# 帳號密碼設定（僅用於保護「綜合計算與效益評估」區域）
+# 授權使用者設定（敏感資料從 st.secrets 讀取）
 # -------------------------------
-USERNAME = "admin"
-PASSWORD = "secret"
+# 請在 secrets.toml 檔案中加入：
+# [authorized_users]
+# admin = "secret"
+# user1 = "pass1"
+# user2 = "pass2"
+authorized_users = st.secrets["authorized_users"]
 
 # -------------------------------
 # 計算遺產稅相關函式
@@ -276,11 +280,11 @@ if not st.session_state.get("authenticated", False):
         login_password = st.text_input("密碼", type="password", key="login_password")
         submitted = st.form_submit_button("登入")
         if submitted:
-            if login_username == USERNAME and login_password == PASSWORD:
+            if login_username in authorized_users and login_password == authorized_users[login_username]:
                 st.session_state.authenticated = True
             else:
                 st.error("帳號或密碼錯誤")
-    # 若尚未驗證，則不顯示保護區其他內容
+    st.stop()
 else:
     st.markdown("請輸入規劃保單及提前贈與的金額")
     
