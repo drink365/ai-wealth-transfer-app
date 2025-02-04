@@ -3,6 +3,9 @@ import pandas as pd
 import math
 import plotly.express as px
 
+# st.set_page_config 必須是第一個 Streamlit 命令
+st.set_page_config(page_title="遺產稅試算＋建議", layout="wide")
+
 # -------------------------------
 # 頁面顏色管理 CSS
 # -------------------------------
@@ -33,13 +36,6 @@ h2 {
 </style>
 """
 st.markdown(custom_css, unsafe_allow_html=True)
-
-# -------------------------------
-# 設定頁面
-# -------------------------------
-def set_config():
-    st.set_page_config(page_title="遺產稅試算＋建議", layout="wide")
-set_config()
 
 # -------------------------------
 # Constants（單位：萬）
@@ -93,7 +89,7 @@ def generate_basic_advice(taxable_amount, tax_due):
     advice = (
         "<span style='color: blue;'>1. 規劃保單</span>：透過保險預留稅源。<br><br>"
         "<span style='color: blue;'>2. 提前贈與</span>：利用免稅贈與逐年轉移財富。<br><br>"
-        "<span style='color: blue;'>3. 分散配置</span>：透過合理資產配置降低稅率至90%。"
+        "<span style='color: blue;'>3. 分散配置</span>：透過合理資產配置降低稅率至90%."
     )
     return advice
 
