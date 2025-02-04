@@ -270,7 +270,7 @@ st.markdown("""
 st.markdown("---")
 st.markdown("## 綜合計算與效益評估 (僅限授權使用者)")
 
-# 如果尚未驗證，則顯示登入介面
+# 初始化驗證狀態
 if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
 
@@ -282,6 +282,7 @@ if not st.session_state.authenticated:
         if login_username == USERNAME and login_password == PASSWORD:
             st.session_state.authenticated = True
             st.success("登入成功！")
+            st.experimental_rerun()  # 強制重新執行腳本，顯示保護區內容
         else:
             st.error("帳號或密碼錯誤")
 else:
