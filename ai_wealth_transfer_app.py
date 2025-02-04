@@ -350,7 +350,7 @@ _, tax_case_insurance, _ = calculate_estate_tax(
 )
 net_case_insurance = effective_case_insurance - tax_case_insurance + claim_case
 
-# 4. 提前贈與＋購買保險（未被實質課稅）
+# 4. 提前贈與＋購買保險
 effective_case_combo_not_tax = CASE_TOTAL_ASSETS - gift_case - premium_case
 _, tax_case_combo_not_tax, _ = calculate_estate_tax(
     effective_case_combo_not_tax,
@@ -380,7 +380,7 @@ case_data = {
         "沒有規劃",
         "提前贈與",
         "購買保險",
-        "提前贈與＋購買保險（未被實質課稅）",
+        "提前贈與＋購買保險",
         "提前贈與＋購買保險（被實質課稅）"
     ],
     "遺產稅（萬）": [
