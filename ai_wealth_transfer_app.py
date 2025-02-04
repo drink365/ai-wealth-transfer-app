@@ -58,14 +58,6 @@ def calculate_estate_tax(total_assets, spouse_deduction, adult_children, other_d
             previous_bracket = bracket
     return taxable_amount, int(round(tax_due, 2)), deductions
 
-def generate_basic_advice(taxable_amount, tax_due):
-    advice = (
-        "<span style='color: blue;'>1. 規劃保單</span>：透過保險預留稅源。<br><br>"
-        "<span style='color: blue;'>2. 提前贈與</span>：利用免稅贈與逐年轉移財富。<br><br>"
-        "<span style='color: blue;'>3. 分散配置</span>：透過合理資產配置，降低稅率至90%。"
-    )
-    return advice
-
 # -------------------------------
 # 模擬策略函式（保險、贈與、分散配置）
 # -------------------------------
@@ -216,68 +208,16 @@ original_data = {
     "預估遺產稅": tax_due,
     "家人總共取得": total_assets_input - tax_due
 }
+
+# -------------------------------
+# 家族傳承策略建議區：僅保留三行策略文字
+# -------------------------------
 st.markdown("## 家族傳承策略建議")
-st.markdown(generate_basic_advice(taxable_amount, tax_due), unsafe_allow_html=True)
-strategy = st.radio("請選擇策略", options=["", "保單規劃策略", "提前贈與策略", "分散配置策略"],
-                    index=0, horizontal=True)
-if strategy == "保單規劃策略":
-    st.markdown("<h6 style='color: red;'>【沒有規劃】</h6>", unsafe_allow_html=True)
-    st.markdown(f"- 總資產：**{original_data['總資產']:,.2f} 萬元**")
-    st.markdown(f"- 預估遺產稅：**{original_data['預估遺產稅']:,.2f} 萬元**")
-    st.markdown(f"- 家人總共取得：**{original_data['家人總共取得']:,.2f} 萬元**")
-    st.markdown("<h6 style='color: red;'>【保單規劃策略】</h6>", unsafe_allow_html=True)
-    with st.expander("您可以自行調整保費與理賠金比例。"):
-        premium = st.number_input("請輸入保費（萬）", min_value=0, max_value=100000,
-                                  value=int(math.ceil((tax_due / 1.3) / 100) * 100), step=100, key="insurance_premium")
-        premium_ratio = st.slider("請設定比例", min_value=1.0, max_value=3.0,
-                                  value=1.3, step=0.1, key="insurance_ratio")
-        # 計算並顯示預估理賠金
-        estimated_claim = premium * premium_ratio
-        st.markdown(f"**預估理賠金：{estimated_claim:,.2f} 萬**")
-        st.session_state["estimated_claim"] = int(round(estimated_claim))
-    if premium * premium_ratio < tax_due:
-        st.error("警告：稅源不足！")
-    insurance_results = simulate_insurance_strategy(
-        total_assets_input, spouse_deduction, adult_children_input, other_dependents_input, disabled_people_input, parents_input,
-        premium_ratio, premium
-    )
-    st.markdown("<h6 style='color: red;'>【有規劃保單 (被實質課稅)】</h6>", unsafe_allow_html=True)
-    taxed = insurance_results["有規劃保單 (被實質課稅)"]
-    st.markdown(f"- 預估遺產稅：**{taxed['預估遺產稅']:,.2f} 萬元**")
-    st.markdown(f"- 家人總共取得：**{taxed['家人總共取得']:,.2f} 萬元**")
-    st.markdown(f"- 規劃效果：<span class='effect'>較沒有規劃增加 {taxed['規劃效果']:,.2f} 萬元</span>", unsafe_allow_html=True)
-    st.markdown("<h6 style='color: red;'>【有規劃保單】</h6>", unsafe_allow_html=True)
-    not_taxed = insurance_results["有規劃保單"]
-    st.markdown(f"- 預估遺產稅：**{not_taxed['預估遺產稅']:,.2f} 萬元**")
-    st.markdown(f"- 家人總共取得：**{not_taxed['家人總共取得']:,.2f} 萬元**")
-    st.markdown(f"- 規劃效果：<span class='effect'>較沒有規劃增加 {not_taxed['規劃效果']:,.2f} 萬元</span>", unsafe_allow_html=True)
-elif strategy == "提前贈與策略":
-    st.markdown("<h6 style='color: red;'>【沒有規劃】</h6>", unsafe_allow_html=True)
-    st.markdown(f"- 總資產：**{original_data['總資產']:,.2f} 萬元**")
-    st.markdown(f"- 預估遺產稅：**{original_data['預估遺產稅']:,.2f} 萬元**")
-    st.markdown(f"- 家人總共取得：**{original_data['家人總共取得']:,.2f} 萬元**")
-    st.markdown("<h6 style='color: red;'>【提前贈與後】</h6>", unsafe_allow_html=True)
-    years = st.slider("請設定贈與年數", 1, 10, 3, 1, key="gift_years")
-    gift_results = simulate_gift_strategy(
-        total_assets_input, spouse_deduction, adult_children_input, other_dependents_input, disabled_people_input, parents_input, years
-    )
-    after_gift = gift_results["提前贈與後"]
-    st.markdown(f"- 贈與年數：**{after_gift['贈與年數']} 年**")
-    st.markdown(f"- 總資產：**{after_gift['總資產']:,.2f} 萬元**")
-    st.markdown(f"- 預估遺產稅：**{after_gift['預估遺產稅']:,.2f} 萬元**")
-    st.markdown(f"- 總贈與金額：**{after_gift['總贈與金額']:,.2f} 萬元**")
-    st.markdown(f"- 家人總共取得：**{after_gift['家人總共取得']:,.2f} 萬元**")
-    effect_gift = gift_results["規劃效果"]
-    st.markdown(f"- 規劃效果：<span class='effect'>較沒有規劃增加 {effect_gift['較沒有規劃增加']:,.2f} 萬元</span>", unsafe_allow_html=True)
-elif strategy == "分散配置策略":
-    st.markdown("<h6 style='color: red;'>【沒有規劃】</h6>", unsafe_allow_html=True)
-    original_div = simulate_diversified_strategy(tax_due)["沒有規劃"]
-    st.markdown(f"- 預估遺產稅：**{original_div['預估遺產稅']:,.2f} 萬元**")
-    st.markdown("<h6 style='color: red;'>【分散配置後】</h6>", unsafe_allow_html=True)
-    div_results = simulate_diversified_strategy(tax_due)
-    st.markdown(f"- 預估遺產稅：**{div_results['分散配置後']['預估遺產稅']:,.2f} 萬元**")
-    effect_div = div_results["規劃效果"]
-    st.markdown(f"- 規劃效果：<span class='effect'>較沒有規劃增加 {effect_div['較沒有規劃增加']:,.2f} 萬元</span>", unsafe_allow_html=True)
+st.markdown("""
+1. 規劃保單：透過保險預留稅源。  
+2. 提前贈與：利用免稅贈與逐年轉移財富。  
+3. 分散配置：透過合理資產配置降低稅率至90%。
+""")
 
 # -------------------------------
 # 綜合計算與效益評估案例區
@@ -380,7 +320,7 @@ case_data = {
         "沒有規劃",
         "提前贈與",
         "購買保險",
-        "提前贈與＋購買保險（未被實質課稅）",
+        "提前贈與＋購買保險",
         "提前贈與＋購買保險（被實質課稅）"
     ],
     "遺產稅（萬）": [
@@ -398,14 +338,6 @@ case_data = {
         net_case_combo_tax
     ]
 }
-# 修改規劃策略文字，將"提前贈與＋購買保險（未被實質課稅）"改為"提前贈與＋購買保險"
-case_data["規劃策略"] = [
-    "沒有規劃",
-    "提前贈與",
-    "購買保險",
-    "提前贈與＋購買保險",
-    "提前贈與＋購買保險（被實質課稅）"
-]
 df_case_results = pd.DataFrame(case_data)
 # 新增「規劃效益」欄：各規劃情況與「沒有規劃」的差額
 baseline_value = df_case_results.loc[df_case_results["規劃策略"]=="沒有規劃", "家人總共取得（萬）"].iloc[0]
