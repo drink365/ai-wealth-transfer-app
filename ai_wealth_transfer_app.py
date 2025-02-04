@@ -263,7 +263,7 @@ elif strategy == "提前贈與策略":
     )
     after_gift = gift_results["提前贈與後"]
     st.markdown(f"- 贈與年數：**{after_gift['贈與年數']} 年**")
-    st.markdown(f"- 總資產：**{after_gift['遺產總額']:,.2f} 萬元**")
+    st.markdown(f"- 總資產：**{after_gift['總資產']:,.2f} 萬元**")
     st.markdown(f"- 預估遺產稅：**{after_gift['預估遺產稅']:,.2f} 萬元**")
     st.markdown(f"- 總贈與金額：**{after_gift['總贈與金額']:,.2f} 萬元**")
     st.markdown(f"- 家人總共取得：**{after_gift['家人總共取得']:,.2f} 萬元**")
