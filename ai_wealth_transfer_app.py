@@ -93,7 +93,7 @@ def simulate_insurance_strategy(total_assets, spouse_deduction, adult_children, 
             "預估遺產稅": tax_no_insurance,
             "家人總共取得": net_no_insurance
         },
-        "有規劃保單 (未被實質課稅)": {
+        "有規劃保單": {
             "預估遺產稅": tax_new,
             "家人總共取得": net_not_taxed,
             "規劃效果": effect_not_taxed
@@ -241,8 +241,8 @@ if strategy == "保單規劃策略":
         total_assets_input, spouse_deduction, adult_children_input, other_dependents_input, disabled_people_input, parents_input,
         premium_ratio, premium
     )
-    st.markdown("<h6 style='color: red;'>【有規劃保單（未被實質課稅）】</h6>", unsafe_allow_html=True)
-    not_taxed = insurance_results["有規劃保單 (未被實質課稅)"]
+    st.markdown("<h6 style='color: red;'>【有規劃保單】</h6>", unsafe_allow_html=True)
+    not_taxed = insurance_results["有規劃保單"]
     st.markdown(f"- 預估遺產稅：**{not_taxed['預估遺產稅']:,.2f} 萬元**")
     st.markdown(f"- 家人總共取得：**{not_taxed['家人總共取得']:,.2f} 萬元**")
     st.markdown(f"- 規劃效果：<span class='effect'>較沒有規劃增加 {not_taxed['規劃效果']:,.2f} 萬元</span>", unsafe_allow_html=True)
@@ -299,7 +299,7 @@ default_premium = int(math.ceil((tax_due / 1.3) / 100) * 100)
 if default_premium > CASE_TOTAL_ASSETS:
     default_premium = CASE_TOTAL_ASSETS
 
-# 保險理賠金預設值：直接設定為保費*1.5
+# 保險理賠金預設值：直接設定為保費 * 1.5
 default_claim = int(default_premium * 1.5)
 
 # 提前贈與金額預設值為 0
@@ -404,7 +404,7 @@ baseline_value = df_case_results.loc[df_case_results["規劃策略"]=="沒有規
 df_case_results["規劃效益"] = df_case_results["家人總共取得（萬）"] - baseline_value
 
 st.markdown("### 案例模擬結果")
-# 新增家庭狀況說明：若有配偶則列出「配偶」；其他直接顯示數值，例如 "子女2人"
+# 新增家庭狀況說明，若有配偶則列出「配偶」；其他直接顯示數值，例如 "子女2人"
 family_status = ""
 if CASE_SPOUSE:
     family_status += "配偶, "
