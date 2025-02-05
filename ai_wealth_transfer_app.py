@@ -67,14 +67,6 @@ if "default_claim" not in st.session_state:
     st.session_state.default_claim = None
 
 def check_credentials(input_username: str, input_password: str) -> (bool, str):
-    """
-    檢查使用者輸入的帳號與密碼是否正確，
-    並確認當前日期是否在該使用者的使用權限期間內。
-    
-    回傳：
-        (True, 使用者姓名) 如果驗證成功，
-        (False, "") 如果驗證失敗
-    """
     if input_username in authorized_users:
         user_info = authorized_users[input_username]
         if input_password == user_info["password"]:
@@ -93,14 +85,8 @@ def check_credentials(input_username: str, input_password: str) -> (bool, str):
         st.error("查無此使用者")
         return False, ""
 
-# -------------------------------
-# 遺產稅計算相關函式
-# -------------------------------
 def compute_deductions(spouse: bool, adult_children: int, other_dependents: int,
                        disabled_people: int, parents: int) -> float:
-    """
-    計算總扣除額（單位：萬）
-    """
     spouse_deduction = SPOUSE_DEDUCTION_VALUE if spouse else 0
     total_deductions = (
         spouse_deduction +
@@ -116,24 +102,9 @@ def compute_deductions(spouse: bool, adult_children: int, other_dependents: int,
 def calculate_estate_tax(total_assets: float, spouse: bool, adult_children: int,
                           other_dependents: int, disabled_people: int, parents: int
                          ) -> Tuple[float, float, float]:
-    """
-    計算遺產稅
-    輸入：
-      total_assets      : 總資產（單位：萬）
-      spouse            : 是否有配偶
-      adult_children    : 直系血親卑親屬數量
-      other_dependents  : 其他撫養對象數量
-      disabled_people   : 重度身心障礙者數量
-      parents           : 父母數量
-    回傳：
-      taxable_amount    : 課稅遺產淨額
-      tax_due           : 預估遺產稅
-      total_deductions  : 總扣除額
-    """
     deductions = compute_deductions(spouse, adult_children, other_dependents, disabled_people, parents)
     if total_assets < EXEMPT_AMOUNT + deductions:
         return 0, 0, deductions
-
     taxable_amount = max(0, total_assets - EXEMPT_AMOUNT - deductions)
     tax_due = 0.0
     previous_bracket = 0
@@ -145,9 +116,6 @@ def calculate_estate_tax(total_assets: float, spouse: bool, adult_children: int,
     return taxable_amount, round(tax_due, 0), deductions
 
 def generate_basic_advice() -> str:
-    """
-    產生家族傳承策略建議文字
-    """
     advice = (
         "<span style='color: blue;'>1. 規劃保單</span>：透過保險預留稅源。<br><br>"
         "<span style='color: blue;'>2. 提前贈與</span>：利用免稅贈與逐年轉移財富。<br><br>"
@@ -158,23 +126,17 @@ def generate_basic_advice() -> str:
 def simulate_insurance_strategy(total_assets: float, spouse: bool, adult_children: int,
                                 other_dependents: int, disabled_people: int, parents: int,
                                 premium_ratio: float, premium: float) -> Dict[str, Any]:
-    """
-    模擬購買保險對遺產稅的影響
-    """
     _, tax_no_insurance, _ = calculate_estate_tax(total_assets, spouse, adult_children, other_dependents, disabled_people, parents)
     net_no_insurance = total_assets - tax_no_insurance
-
     claim_amount = round(premium * premium_ratio, 0)
     new_total_assets = total_assets - premium
     _, tax_new, _ = calculate_estate_tax(new_total_assets, spouse, adult_children, other_dependents, disabled_people, parents)
     net_not_taxed = round(new_total_assets - tax_new + claim_amount, 0)
     effect_not_taxed = net_not_taxed - net_no_insurance
-
     effective_estate = total_assets - premium + claim_amount
     _, tax_effective, _ = calculate_estate_tax(effective_estate, spouse, adult_children, other_dependents, disabled_people, parents)
     net_taxed = round(effective_estate - tax_effective, 0)
     effect_taxed = net_taxed - net_no_insurance
-
     return {
         "沒有規劃": {
             "總資產": int(total_assets),
@@ -196,19 +158,14 @@ def simulate_insurance_strategy(total_assets: float, spouse: bool, adult_childre
 def simulate_gift_strategy(total_assets: float, spouse: bool, adult_children: int,
                              other_dependents: int, disabled_people: int, parents: int,
                              years: int) -> Dict[str, Any]:
-    """
-    模擬提前贈與策略對遺產稅的影響
-    """
     annual_gift_exemption = 244
     total_gift = years * annual_gift_exemption
     simulated_total_assets = max(total_assets - total_gift, 0)
     _, tax_sim, _ = calculate_estate_tax(simulated_total_assets, spouse, adult_children, other_dependents, disabled_people, parents)
     net_after = round(simulated_total_assets - tax_sim + total_gift, 0)
-
     _, tax_original, _ = calculate_estate_tax(total_assets, spouse, adult_children, other_dependents, disabled_people, parents)
     net_original = total_assets - tax_original
     effect = net_after - net_original
-
     return {
         "沒有規劃": {
             "總資產": int(total_assets),
@@ -228,9 +185,6 @@ def simulate_gift_strategy(total_assets: float, spouse: bool, adult_children: in
     }
 
 def simulate_diversified_strategy(tax_due: float) -> Dict[str, Any]:
-    """
-    模擬分散配置策略（降低稅率至90%）的效益
-    """
     tax_factor = 0.90
     simulated_tax_due = round(tax_due * tax_factor, 0)
     saved = tax_due - simulated_tax_due
@@ -249,7 +203,7 @@ def simulate_diversified_strategy(tax_due: float) -> Dict[str, Any]:
     }
 
 # -------------------------------
-# 非保護區：遺產稅試算＋家族傳承策略建議（所有人均可看到）
+# 非保護區：遺產稅試算＋家族傳承策略建議（所有人皆可看到）
 # -------------------------------
 st.markdown("<h1 class='main-header'>遺產稅試算＋建議</h1>", unsafe_allow_html=True)
 st.selectbox("選擇適用地區", ["台灣（2025年起）"], index=0)
@@ -358,20 +312,31 @@ if st.session_state.get("authenticated", False):
     if default_premium > CASE_TOTAL_ASSETS:
         default_premium = CASE_TOTAL_ASSETS
 
-    # 購買保險保費輸入
+    # 儲存 premium_case 至 session_state（如果尚未設定）
+    st.session_state["premium_case"] = st.session_state.get("premium_case", default_premium)
+
+    # 定義更新理賠金預設值的函式
+    def update_claim():
+        premium_val = st.session_state.get("premium_case", default_premium)
+        new_default = int(premium_val * 1.5)
+        # 如果 claim_case 尚未設定或與舊預設相同，則更新
+        if st.session_state.get("claim_case") is None or st.session_state.get("claim_case") == st.session_state.get("default_claim", new_default):
+            st.session_state["claim_case"] = new_default
+        st.session_state["default_claim"] = new_default
+
     premium_case = st.number_input("購買保險保費（萬）",
                                    min_value=0,
                                    max_value=CASE_TOTAL_ASSETS,
-                                   value=default_premium,
+                                   value=st.session_state["premium_case"],
                                    step=100,
                                    key="premium_case",
-                                   format="%d")
-    # 更新保險理賠金的預設值
-    new_default_claim = int(premium_case * 1.5)
-    # 若尚未有 claim_case 值或與之前的預設值相同，則更新
-    if st.session_state.get("claim_case") is None or st.session_state.get("claim_case") == st.session_state.get("default_claim", new_default_claim):
-        st.session_state["claim_case"] = new_default_claim
-    st.session_state["default_claim"] = new_default_claim
+                                   format="%d",
+                                   on_change=update_claim)
+
+    # 更新後自動更新 claim_case 的預設值（若未改變則使用 premium_case * 1.5）
+    if st.session_state.get("claim_case") is None:
+        st.session_state["claim_case"] = int(premium_case * 1.5)
+        st.session_state["default_claim"] = int(premium_case * 1.5)
 
     claim_case = st.number_input("保險理賠金（萬）",
                                  min_value=0,
@@ -381,7 +346,7 @@ if st.session_state.get("authenticated", False):
                                  key="claim_case",
                                  format="%d")
 
-    # 根據 (總資產 - 保費) 決定提前贈與金額的預設值
+    # 根據 (總資產 - premium_case) 決定提前贈與金額的預設值
     remaining = CASE_TOTAL_ASSETS - premium_case
     if remaining >= 2440:
         default_gift = 2440
