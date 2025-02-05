@@ -4,6 +4,7 @@ import math
 import plotly.express as px
 from typing import Tuple, Dict, Any
 from datetime import datetime
+import time  # 新增 time 模組
 
 # -------------------------------
 # Streamlit Page Config
@@ -318,7 +319,6 @@ st.markdown("## 綜合計算與效益評估 (僅限授權使用者)")
 # 建立一個空容器作為登入區塊
 login_container = st.empty()
 
-# 如果尚未登入，顯示登入表單
 if not st.session_state.get("authenticated", False):
     with login_container.form("login_form"):
         st.markdown("請先登入以檢視此區域內容。")
@@ -330,13 +330,15 @@ if not st.session_state.get("authenticated", False):
             if valid:
                 st.session_state.authenticated = True
                 st.session_state.user_name = user_name
-                st.success(f"登入成功！歡迎 {user_name}")
-                # 清空登入區塊
+                # 顯示成功登入提示，等待1秒後自動清除
+                success_container = st.empty()
+                success_container.success(f"登入成功！歡迎 {user_name}")
+                time.sleep(1)
+                success_container.empty()
                 login_container.empty()
             else:
                 st.session_state.authenticated = False
 
-# 如果已登入，直接顯示保護區內容
 if st.session_state.get("authenticated", False):
     st.markdown("請輸入規劃保單及提前贈與的金額")
     
