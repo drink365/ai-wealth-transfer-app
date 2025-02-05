@@ -111,7 +111,7 @@ def generate_basic_advice() -> str:
     advice = (
         "<span style='color: blue;'>1. 規劃保單</span>：透過保險預留稅源。<br><br>"
         "<span style='color: blue;'>2. 提前贈與</span>：利用免稅贈與逐年轉移財富。<br><br>"
-        "<span style='color: blue;'>3. 分散配置</span>：透過合理資產配置降低稅率至90%。"
+        "<span style='color: blue;'>3. 分散配置</span>：透過合理資產配置降低稅負。"
     )
     return advice
 
@@ -259,7 +259,7 @@ st.markdown("## 家族傳承策略建議")
 st.markdown("""
 1. 規劃保單：透過保險預留稅源。  
 2. 提前贈與：利用免稅贈與逐年轉移財富。  
-3. 分散配置：透過合理資產配置降低稅率至90%。
+3. 分散配置：透過合理資產配置降低稅負。
 """)
 
 # ===============================
@@ -300,24 +300,24 @@ if st.session_state.get("authenticated", False):
     CASE_DISABLED = disabled_people_input
     CASE_OTHER = other_dependents_input
 
-    # 保費預設：直接等於預估遺產稅，並向上取整到十萬位
+    # 保費預設：直接等於預估遺產稅，向上取整到十萬位（例如321萬變為330萬），若超過總資產則取總資產
     default_premium = int(math.ceil(tax_due / 10) * 10)
     if default_premium > CASE_TOTAL_ASSETS:
         default_premium = CASE_TOTAL_ASSETS
-
     premium_val = default_premium
 
     # 理賠金預設：保費的 1.5 倍
     default_claim = int(premium_val * 1.5)
 
-    # 贈與金額預設：若剩餘資產 (總資產 - 保費) 大於等於 244 萬，則預設為 244 萬；否則為 0
+    # 贈與金額預設：剩餘資產 = (總資產 - 保費)
+    # 若剩餘資產大於等於244萬，預設為244；否則為0
     remaining = CASE_TOTAL_ASSETS - premium_val
     if remaining >= 244:
         default_gift = 244
     else:
         default_gift = 0
 
-    # 顯示輸入框（非保護區部分計算的預設值，登入後直接呈現）
+    # 輸入框（使用前面計算好的預設值）
     premium_case = st.number_input("購買保險保費（萬）",
                                    min_value=0,
                                    max_value=CASE_TOTAL_ASSETS,
@@ -325,23 +325,17 @@ if st.session_state.get("authenticated", False):
                                    step=100,
                                    key="premium_case",
                                    format="%d")
-    # 如果用戶修改保費，則自動更新理賠金的預設值（前提是用戶尚未修改理賠金）
-    # 這裡使用 st.experimental_set_query_params() 不會影響預設值的運算，故直接重新計算
-    updated_claim = int(premium_case * 1.5)
-    # 如果用戶未自行修改理賠金，則使用更新後的預設值
     claim_case = st.number_input("保險理賠金（萬）",
                                  min_value=0,
                                  max_value=100000,
-                                 value=updated_claim,
+                                 value=default_claim,
                                  step=100,
                                  key="claim_case",
                                  format="%d")
-    # 贈與金額預設，必須不超過 (總資產 - 保費)
-    gift_default = min(default_gift, CASE_TOTAL_ASSETS - premium_case)
     gift_case = st.number_input("提前贈與金額（萬）",
                                 min_value=0,
                                 max_value=CASE_TOTAL_ASSETS - premium_case,
-                                value=gift_default,
+                                value=min(default_gift, CASE_TOTAL_ASSETS - premium_case),
                                 step=100,
                                 key="case_gift",
                                 format="%d")
@@ -351,7 +345,7 @@ if st.session_state.get("authenticated", False):
     if gift_case > CASE_TOTAL_ASSETS - premium_case:
         st.error("錯誤：提前贈與金額不得高於【總資產】-【保費】！")
 
-    # 以下計算模擬結果（不影響預設值）
+    # 以下為模擬計算結果（使用者可參考）
     _, tax_case_no_plan, _ = calculate_estate_tax(
         CASE_TOTAL_ASSETS,
         CASE_SPOUSE,
@@ -430,7 +424,7 @@ if st.session_state.get("authenticated", False):
         ]
     }
     df_case_results = pd.DataFrame(case_data)
-    baseline_value = df_case_results.loc[df_case_results["規劃策略"] == "沒有規劃", "家人總共取得（萬）"].iloc[0]
+    baseline_value = df_case_results.loc[df_case_results["規劃策略"]=="沒有規劃", "家人總共取得（萬）"].iloc[0]
     df_case_results["規劃效益"] = df_case_results["家人總共取得（萬）"] - baseline_value
 
     st.markdown("### 案例模擬結果")
@@ -450,7 +444,7 @@ if st.session_state.get("authenticated", False):
         text="家人總共取得（萬）"
     )
     fig_bar_case.update_traces(texttemplate='%{text:.0f}', textposition='outside')
-    baseline_case = df_viz_case.loc[df_viz_case["規劃策略"] == "沒有規劃", "家人總共取得（萬）"].iloc[0]
+    baseline_case = df_viz_case.loc[df_viz_case["規劃策略"]=="沒有規劃", "家人總共取得（萬）"].iloc[0]
     for idx, row in df_viz_case.iterrows():
         if row["規劃策略"] != "沒有規劃":
             diff = row["家人總共取得（萬）"] - baseline_case
