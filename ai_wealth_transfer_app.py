@@ -300,24 +300,24 @@ if st.session_state.get("authenticated", False):
     CASE_DISABLED = disabled_people_input
     CASE_OTHER = other_dependents_input
 
-    # 保費預設：直接等於預估遺產稅，但向上取整到十萬位
+    # 保費預設：直接等於預估遺產稅，並向上取整到十萬位
     default_premium = int(math.ceil(tax_due / 10) * 10)
     if default_premium > CASE_TOTAL_ASSETS:
         default_premium = CASE_TOTAL_ASSETS
 
-    premium_val = default_premium  # 此處直接用計算好的數值作為預設
+    premium_val = default_premium
 
     # 理賠金預設：保費的 1.5 倍
     default_claim = int(premium_val * 1.5)
 
-    # 贈與金額預設：若剩餘資產（總資產 - 保費）大於等於 244 萬，則預設為 244 萬；否則為 0
+    # 贈與金額預設：若剩餘資產 (總資產 - 保費) 大於等於 244 萬，則預設為 244 萬；否則為 0
     remaining = CASE_TOTAL_ASSETS - premium_val
     if remaining >= 244:
         default_gift = 244
     else:
         default_gift = 0
 
-    # 顯示輸入框，使用預設值（這裡的預設值均不依登入狀態變動）
+    # 輸入框顯示（這些預設值均根據非保護區的計算結果，不受登入狀態影響）
     premium_case = st.number_input("購買保險保費（萬）",
                                    min_value=0,
                                    max_value=CASE_TOTAL_ASSETS,
@@ -335,7 +335,7 @@ if st.session_state.get("authenticated", False):
     gift_case = st.number_input("提前贈與金額（萬）",
                                 min_value=0,
                                 max_value=CASE_TOTAL_ASSETS - premium_case,
-                                value=default_gift,
+                                value=min(default_gift, CASE_TOTAL_ASSETS - premium_case),
                                 step=100,
                                 key="case_gift",
                                 format="%d")
@@ -404,8 +404,8 @@ if st.session_state.get("authenticated", False):
             "沒有規劃",
             "提前贈與",
             "購買保險",
-            "提前贈與＋購買保險",
-            "提前贈與＋購買保險（被實質課稅）"
+            "提前贈與＋購買保單",
+            "提前贈與＋購買保單（被實質課稅）"
         ],
         "遺產稅（萬）": [
             int(tax_case_no_plan),
