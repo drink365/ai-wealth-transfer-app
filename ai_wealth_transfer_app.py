@@ -263,10 +263,10 @@ st.markdown("""
 """)
 
 # ===============================
-# 保護區：綜合計算與效益評估（僅限授權使用者）
+# 保護區：模擬試算與效益評估（僅限授權使用者）
 # ===============================
 st.markdown("---")
-st.markdown("## 綜合計算與效益評估 (僅限授權使用者)")
+st.markdown("## 模擬試算與效益評估 (僅限授權使用者)")
 
 login_container = st.empty()
 
@@ -290,9 +290,8 @@ if not st.session_state.get("authenticated", False):
                 st.session_state.authenticated = False
 
 if st.session_state.get("authenticated", False):
-    st.markdown("請輸入規劃保單及提前贈與的金額")
+    st.markdown("請檢視下方的模擬試算與效益評估結果")
     
-    # 取得基礎數據
     CASE_TOTAL_ASSETS = total_assets_input  
     CASE_SPOUSE = has_spouse
     CASE_ADULT_CHILDREN = adult_children_input
@@ -309,15 +308,13 @@ if st.session_state.get("authenticated", False):
     # 理賠金預設：保費的 1.5 倍
     default_claim = int(premium_val * 1.5)
 
-    # 贈與金額預設：剩餘資產 = (總資產 - 保費)
-    # 若剩餘資產大於等於244萬，預設為244；否則為0
+    # 贈與金額預設：若剩餘資產 (總資產 - 保費) 大於等於 244 萬，則預設為 244 萬；否則為 0
     remaining = CASE_TOTAL_ASSETS - premium_val
     if remaining >= 244:
         default_gift = 244
     else:
         default_gift = 0
 
-    # 輸入框（使用前面計算好的預設值）
     premium_case = st.number_input("購買保險保費（萬）",
                                    min_value=0,
                                    max_value=CASE_TOTAL_ASSETS,
@@ -345,7 +342,6 @@ if st.session_state.get("authenticated", False):
     if gift_case > CASE_TOTAL_ASSETS - premium_case:
         st.error("錯誤：提前贈與金額不得高於【總資產】-【保費】！")
 
-    # 以下為模擬計算結果（使用者可參考）
     _, tax_case_no_plan, _ = calculate_estate_tax(
         CASE_TOTAL_ASSETS,
         CASE_SPOUSE,
