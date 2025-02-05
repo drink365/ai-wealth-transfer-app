@@ -56,9 +56,15 @@ TAX_BRACKETS = [
 # end_date = "2024-12-31"
 authorized_users = st.secrets["authorized_users"]
 
-# 初始化 session_state 的 authenticated 變數
+# 初始化 session_state 的變數
 if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
+if "premium_case" not in st.session_state:
+    st.session_state.premium_case = None
+if "claim_case" not in st.session_state:
+    st.session_state.claim_case = None
+if "default_claim" not in st.session_state:
+    st.session_state.default_claim = None
 
 def check_credentials(input_username: str, input_password: str) -> (bool, str):
     """
@@ -243,7 +249,7 @@ def simulate_diversified_strategy(tax_due: float) -> Dict[str, Any]:
     }
 
 # -------------------------------
-# 非保護區：遺產稅試算＋家族傳承策略建議（所有人均可看到）
+# 非保護區：遺產稅試算＋家族傳承策略建議（所有人皆可看到）
 # -------------------------------
 st.markdown("<h1 class='main-header'>遺產稅試算＋建議</h1>", unsafe_allow_html=True)
 st.selectbox("選擇適用地區", ["台灣（2025年起）"], index=0)
@@ -330,7 +336,6 @@ if not st.session_state.get("authenticated", False):
             if valid:
                 st.session_state.authenticated = True
                 st.session_state.user_name = user_name
-                # 顯示成功登入提示，等待1秒後自動清除該提示並清除登入表單
                 success_container = st.empty()
                 success_container.success(f"登入成功！歡迎 {user_name}")
                 time.sleep(1)
@@ -353,23 +358,36 @@ if st.session_state.get("authenticated", False):
     if default_premium > CASE_TOTAL_ASSETS:
         default_premium = CASE_TOTAL_ASSETS
 
-    # 讀取購買保險保費
-    premium_case = st.number_input("購買保險保費（萬）", min_value=0, max_value=CASE_TOTAL_ASSETS,
-                                   value=default_premium, step=100, key="case_premium")
+    # 使用 on_change 回呼函式：當 premium 改變時，若使用者尚未手動修改 claim_case，則更新 claim_case
+    def update_claim():
+        new_default = int(st.session_state["premium_case"] * 1.5)
+        # 如果 claim_case 尚未存在或等於之前的預設值，則更新
+        if "claim_case" not in st.session_state or st.session_state["claim_case"] == st.session_state.get("default_claim", new_default):
+            st.session_state["claim_case"] = new_default
+        st.session_state["default_claim"] = new_default
 
-    # 自動計算保險理賠金的核取方塊，預設勾選
-    auto_claim = st.checkbox("自動計算保險理賠金", value=True, key="auto_claim")
-    # 如果勾選自動計算，則保險理賠金的預設值為 premium_case * 1.5，且欄位鎖定不可編輯
-    if auto_claim:
-        default_claim = int(premium_case * 1.5)
-        claim_case = st.number_input("保險理賠金（萬）", min_value=0, max_value=100000,
-                                     value=default_claim, step=100, key="case_claim", disabled=True)
-    else:
-        # 讓使用者自行輸入理賠金
-        claim_case = st.number_input("保險理賠金（萬）", min_value=0, max_value=100000,
-                                     value=int(premium_case * 1.5), step=100, key="case_claim")
-
-    # 根據 (總資產 - premium_case) 決定提前贈與金額的預設值
+    # 購買保險保費，使用 key "premium_case" 並設定 on_change
+    premium_case = st.number_input("購買保險保費（萬）",
+                                   min_value=0,
+                                   max_value=CASE_TOTAL_ASSETS,
+                                   value=default_premium,
+                                   step=100,
+                                   key="premium_case",
+                                   on_change=update_claim)
+    
+    # 初次讀取 claim_case 的預設值（若未曾更新則用 premium_case*1.5）
+    if "claim_case" not in st.session_state:
+        st.session_state["claim_case"] = int(premium_case * 1.5)
+        st.session_state["default_claim"] = int(premium_case * 1.5)
+    
+    claim_case = st.number_input("保險理賠金（萬）",
+                                 min_value=0,
+                                 max_value=100000,
+                                 value=st.session_state["claim_case"],
+                                 step=100,
+                                 key="claim_case")
+    
+    # 根據 (總資產 - premium_case) 決定提前贈與金額的預設值：
     remaining = CASE_TOTAL_ASSETS - premium_case
     if remaining >= 2440:
         default_gift = 2440
@@ -378,8 +396,12 @@ if st.session_state.get("authenticated", False):
     else:
         default_gift = 0
 
-    gift_case = st.number_input("提前贈與金額（萬）", min_value=0, max_value=CASE_TOTAL_ASSETS - premium_case,
-                                value=default_gift, step=100, key="case_gift")
+    gift_case = st.number_input("提前贈與金額（萬）",
+                                min_value=0,
+                                max_value=CASE_TOTAL_ASSETS - premium_case,
+                                value=default_gift,
+                                step=100,
+                                key="case_gift")
 
     if premium_case > CASE_TOTAL_ASSETS:
         st.error("錯誤：保費不得高於總資產！")
