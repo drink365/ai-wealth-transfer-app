@@ -31,7 +31,7 @@ TAX_BRACKETS = [
 # -------------------------------
 # 授權使用者設定（從 st.secrets 讀取）
 # -------------------------------
-# 請確保您的 secrets.toml 中有以下內容：
+# 請確認您的 secrets.toml 中有以下內容：
 #
 # [authorized_users.admin]
 # name = "管理者"
@@ -55,7 +55,7 @@ TAX_BRACKETS = [
 # end_date = "2024-12-31"
 authorized_users = st.secrets["authorized_users"]
 
-# 若第一次執行前先將 authenticated 設為 False
+# 初始化 session_state 的 authenticated 變數
 if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
 
@@ -315,9 +315,12 @@ st.markdown("""
 st.markdown("---")
 st.markdown("## 綜合計算與效益評估 (僅限授權使用者)")
 
-# 如果未登入則顯示登入表單；成功後不再顯示表單而直接呈現保護區內容
+# 建立一個空容器作為登入區塊
+login_container = st.empty()
+
+# 如果尚未登入，顯示登入表單
 if not st.session_state.get("authenticated", False):
-    with st.form("login_form"):
+    with login_container.form("login_form"):
         st.markdown("請先登入以檢視此區域內容。")
         login_username = st.text_input("帳號", key="login_form_username")
         login_password = st.text_input("密碼", type="password", key="login_form_password")
@@ -328,9 +331,13 @@ if not st.session_state.get("authenticated", False):
                 st.session_state.authenticated = True
                 st.session_state.user_name = user_name
                 st.success(f"登入成功！歡迎 {user_name}")
+                # 清空登入區塊
+                login_container.empty()
             else:
                 st.session_state.authenticated = False
-else:
+
+# 如果已登入，直接顯示保護區內容
+if st.session_state.get("authenticated", False):
     st.markdown("請輸入規劃保單及提前贈與的金額")
     
     CASE_TOTAL_ASSETS = total_assets_input  
