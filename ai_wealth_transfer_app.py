@@ -32,28 +32,6 @@ TAX_BRACKETS = [
 # -------------------------------
 # 授權使用者設定（從 st.secrets 讀取）
 # -------------------------------
-# 請確認您的 secrets.toml 中有以下內容：
-#
-# [authorized_users.admin]
-# name = "管理者"
-# username = "admin"
-# password = "secret"
-# start_date = "2023-01-01"
-# end_date = "2025-12-31"
-#
-# [authorized_users.user1]
-# name = "使用者一"
-# username = "user1"
-# password = "pass1"
-# start_date = "2023-03-01"
-# end_date = "2025-12-31"
-#
-# [authorized_users.user2]
-# name = "使用者二"
-# username = "user2"
-# password = "pass2"
-# start_date = "2023-05-01"
-# end_date = "2024-12-31"
 authorized_users = st.secrets["authorized_users"]
 
 # -------------------------------
@@ -205,7 +183,7 @@ def simulate_diversified_strategy(tax_due: float) -> Dict[str, Any]:
     }
 
 # -------------------------------
-# 非保護區：遺產稅試算＋家族傳承策略建議（所有人皆可看到）
+# 非保護區：遺產稅試算＋家族傳承策略建議（所有人均可看到）
 # -------------------------------
 st.markdown("<h1 class='main-header'>遺產稅試算＋建議</h1>", unsafe_allow_html=True)
 st.selectbox("選擇適用地區", ["台灣（2025年起）"], index=0)
@@ -310,7 +288,7 @@ if st.session_state.get("authenticated", False):
     CASE_DISABLED = disabled_people_input
     CASE_OTHER = other_dependents_input
 
-    # 修改預設保費計算：將預估遺產稅向上取整到百萬（以 100 為單位）
+    # 修改預設保費的計算：將預估遺產稅向上取整到百萬（以 100 為單位）
     default_premium = int(math.ceil(tax_due / 100) * 100)
     if default_premium > CASE_TOTAL_ASSETS:
         default_premium = CASE_TOTAL_ASSETS
@@ -318,10 +296,7 @@ if st.session_state.get("authenticated", False):
     st.session_state["premium_case"] = st.session_state.get("premium_case", default_premium)
 
     def update_claim():
-        premium_val = st.session_state.get("premium_case")
-        # 若 premium_val 為 None，則使用 default_premium
-        if premium_val is None:
-            premium_val = default_premium
+        premium_val = st.session_state.get("premium_case", default_premium)
         new_default = int(premium_val * 1.5)
         if st.session_state.get("claim_case") is None or st.session_state.get("claim_case") == st.session_state.get("default_claim", new_default):
             st.session_state["claim_case"] = new_default
@@ -348,7 +323,9 @@ if st.session_state.get("authenticated", False):
                                  key="claim_case",
                                  format="%d")
 
-    remaining = CASE_TOTAL_ASSETS - premium_case
+    # 使用從 session_state 取得 premium_case 確保不是 None
+    premium_val = st.session_state.get("premium_case", default_premium)
+    remaining = CASE_TOTAL_ASSETS - premium_val
     if remaining >= 2440:
         default_gift = 2440
     elif remaining >= 244:
@@ -358,15 +335,15 @@ if st.session_state.get("authenticated", False):
 
     gift_case = st.number_input("提前贈與金額（萬）",
                                 min_value=0,
-                                max_value=CASE_TOTAL_ASSETS - premium_case,
+                                max_value=CASE_TOTAL_ASSETS - premium_val,
                                 value=default_gift,
                                 step=100,
                                 key="case_gift",
                                 format="%d")
 
-    if premium_case > CASE_TOTAL_ASSETS:
+    if premium_val > CASE_TOTAL_ASSETS:
         st.error("錯誤：保費不得高於總資產！")
-    if gift_case > CASE_TOTAL_ASSETS - premium_case:
+    if gift_case > CASE_TOTAL_ASSETS - premium_val:
         st.error("錯誤：提前贈與金額不得高於【總資產】-【保費】！")
 
     _, tax_case_no_plan, _ = calculate_estate_tax(
@@ -390,7 +367,7 @@ if st.session_state.get("authenticated", False):
     )
     net_case_gift = effective_case_gift - tax_case_gift + gift_case
 
-    effective_case_insurance = CASE_TOTAL_ASSETS - premium_case
+    effective_case_insurance = CASE_TOTAL_ASSETS - premium_val
     _, tax_case_insurance, _ = calculate_estate_tax(
         effective_case_insurance,
         CASE_SPOUSE,
@@ -401,7 +378,7 @@ if st.session_state.get("authenticated", False):
     )
     net_case_insurance = effective_case_insurance - tax_case_insurance + claim_case
 
-    effective_case_combo_not_tax = CASE_TOTAL_ASSETS - gift_case - premium_case
+    effective_case_combo_not_tax = CASE_TOTAL_ASSETS - gift_case - premium_val
     _, tax_case_combo_not_tax, _ = calculate_estate_tax(
         effective_case_combo_not_tax,
         CASE_SPOUSE,
@@ -412,7 +389,7 @@ if st.session_state.get("authenticated", False):
     )
     net_case_combo_not_tax = effective_case_combo_not_tax - tax_case_combo_not_tax + claim_case + gift_case
 
-    effective_case_combo_tax = CASE_TOTAL_ASSETS - gift_case - premium_case + claim_case
+    effective_case_combo_tax = CASE_TOTAL_ASSETS - gift_case - premium_val + claim_case
     _, tax_case_combo_tax, _ = calculate_estate_tax(
         effective_case_combo_tax,
         CASE_SPOUSE,
