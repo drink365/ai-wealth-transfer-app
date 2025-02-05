@@ -55,6 +55,10 @@ TAX_BRACKETS = [
 # end_date = "2024-12-31"
 authorized_users = st.secrets["authorized_users"]
 
+# 若第一次執行前先將 authenticated 設為 False
+if "authenticated" not in st.session_state:
+    st.session_state.authenticated = False
+
 def check_credentials(input_username: str, input_password: str) -> (bool, str):
     """
     檢查使用者輸入的帳號與密碼是否正確，
@@ -311,10 +315,8 @@ st.markdown("""
 st.markdown("---")
 st.markdown("## 綜合計算與效益評估 (僅限授權使用者)")
 
-# 以一個變數記錄是否已登入
-auth = st.session_state.get("authenticated", False)
-
-if not auth:
+# 如果未登入則顯示登入表單；成功後不再顯示表單而直接呈現保護區內容
+if not st.session_state.get("authenticated", False):
     with st.form("login_form"):
         st.markdown("請先登入以檢視此區域內容。")
         login_username = st.text_input("帳號", key="login_form_username")
@@ -328,9 +330,6 @@ if not auth:
                 st.success(f"登入成功！歡迎 {user_name}")
             else:
                 st.session_state.authenticated = False
-    # 如果尚未驗證，則不顯示保護區內容，但程式繼續往下執行（行銷資訊區塊仍會顯示）
-    if not st.session_state.get("authenticated", False):
-        st.info("請先登入以檢視綜合計算與效益評估內容。")
 else:
     st.markdown("請輸入規劃保單及提前贈與的金額")
     
