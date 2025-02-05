@@ -32,7 +32,7 @@ TAX_BRACKETS = [
 # -------------------------------
 # 授權使用者設定（從 st.secrets 讀取）
 # -------------------------------
-# 請確認您的 secrets.toml 中有以下內容：
+# 請確保您的 secrets.toml 中有以下內容：
 #
 # [authorized_users.admin]
 # name = "管理者"
@@ -56,7 +56,9 @@ TAX_BRACKETS = [
 # end_date = "2024-12-31"
 authorized_users = st.secrets["authorized_users"]
 
+# -------------------------------
 # 初始化 session_state 變數
+# -------------------------------
 if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
 if "premium_case" not in st.session_state:
@@ -313,10 +315,11 @@ if st.session_state.get("authenticated", False):
     if default_premium > CASE_TOTAL_ASSETS:
         default_premium = CASE_TOTAL_ASSETS
 
-    # 將 premium_case 儲存至 session_state（若尚未設定則以 default_premium 為預設）
+    # 將 premium_case 儲存至 session_state（若尚未設定則使用 default_premium）
     st.session_state["premium_case"] = st.session_state.get("premium_case", default_premium)
 
     def update_claim():
+        # 取得 premium_case，若為 None 則使用 default_premium
         premium_val = st.session_state.get("premium_case", default_premium)
         new_default = int(premium_val * 1.5)
         if st.session_state.get("claim_case") is None or st.session_state.get("claim_case") == st.session_state.get("default_claim", new_default):
@@ -344,6 +347,7 @@ if st.session_state.get("authenticated", False):
                                  key="claim_case",
                                  format="%d")
 
+    # 根據 (總資產 - premium_case) 決定提前贈與金額的預設值
     remaining = CASE_TOTAL_ASSETS - premium_case
     if remaining >= 2440:
         default_gift = 2440
