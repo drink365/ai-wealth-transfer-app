@@ -308,18 +308,17 @@ if st.session_state.get("authenticated", False):
     CASE_DISABLED = disabled_people_input
     CASE_OTHER = other_dependents_input
 
-    default_premium = int(math.ceil((tax_due / 1.3) / 100) * 100)
+    # 修改預設保費的計算：將預估遺產稅向上取整到百萬（以 100 為單位）
+    default_premium = int(math.ceil(tax_due / 100) * 100)
     if default_premium > CASE_TOTAL_ASSETS:
         default_premium = CASE_TOTAL_ASSETS
 
-    # 儲存 premium_case 至 session_state（如果尚未設定）
+    # 將 premium_case 儲存至 session_state（若尚未設定則以 default_premium 為預設）
     st.session_state["premium_case"] = st.session_state.get("premium_case", default_premium)
 
-    # 定義更新理賠金預設值的函式
     def update_claim():
         premium_val = st.session_state.get("premium_case", default_premium)
         new_default = int(premium_val * 1.5)
-        # 如果 claim_case 尚未設定或與舊預設相同，則更新
         if st.session_state.get("claim_case") is None or st.session_state.get("claim_case") == st.session_state.get("default_claim", new_default):
             st.session_state["claim_case"] = new_default
         st.session_state["default_claim"] = new_default
@@ -333,11 +332,10 @@ if st.session_state.get("authenticated", False):
                                    format="%d",
                                    on_change=update_claim)
 
-    # 更新後自動更新 claim_case 的預設值（若未改變則使用 premium_case * 1.5）
     if st.session_state.get("claim_case") is None:
         st.session_state["claim_case"] = int(premium_case * 1.5)
         st.session_state["default_claim"] = int(premium_case * 1.5)
-
+    
     claim_case = st.number_input("保險理賠金（萬）",
                                  min_value=0,
                                  max_value=100000,
@@ -346,7 +344,6 @@ if st.session_state.get("authenticated", False):
                                  key="claim_case",
                                  format="%d")
 
-    # 根據 (總資產 - premium_case) 決定提前贈與金額的預設值
     remaining = CASE_TOTAL_ASSETS - premium_case
     if remaining >= 2440:
         default_gift = 2440
