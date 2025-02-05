@@ -32,6 +32,28 @@ TAX_BRACKETS = [
 # -------------------------------
 # 授權使用者設定（從 st.secrets 讀取）
 # -------------------------------
+# 請確認您的 secrets.toml 中有以下內容：
+#
+# [authorized_users.admin]
+# name = "管理者"
+# username = "admin"
+# password = "secret"
+# start_date = "2023-01-01"
+# end_date = "2025-12-31"
+#
+# [authorized_users.user1]
+# name = "使用者一"
+# username = "user1"
+# password = "pass1"
+# start_date = "2023-03-01"
+# end_date = "2025-12-31"
+#
+# [authorized_users.user2]
+# name = "使用者二"
+# username = "user2"
+# password = "pass2"
+# start_date = "2023-05-01"
+# end_date = "2024-12-31"
 authorized_users = st.secrets["authorized_users"]
 
 # -------------------------------
@@ -183,7 +205,7 @@ def simulate_diversified_strategy(tax_due: float) -> Dict[str, Any]:
     }
 
 # -------------------------------
-# 非保護區：遺產稅試算＋家族傳承策略建議（所有人均可看到）
+# 非保護區：遺產稅試算＋家族傳承策略建議（所有人皆可看到）
 # -------------------------------
 st.markdown("<h1 class='main-header'>遺產稅試算＋建議</h1>", unsafe_allow_html=True)
 st.selectbox("選擇適用地區", ["台灣（2025年起）"], index=0)
@@ -256,7 +278,6 @@ st.markdown("""
 st.markdown("---")
 st.markdown("## 綜合計算與效益評估 (僅限授權使用者)")
 
-# 建立一個空容器作為登入區塊
 login_container = st.empty()
 
 if not st.session_state.get("authenticated", False):
@@ -288,8 +309,8 @@ if st.session_state.get("authenticated", False):
     CASE_DISABLED = disabled_people_input
     CASE_OTHER = other_dependents_input
 
-    # 修改預設保費的計算：將預估遺產稅向上取整到百萬（以 100 為單位）
-    default_premium = int(math.ceil(tax_due / 100) * 100)
+    # 這裡改為將預設保費直接等於預估遺產稅
+    default_premium = int(tax_due)
     if default_premium > CASE_TOTAL_ASSETS:
         default_premium = CASE_TOTAL_ASSETS
 
@@ -323,7 +344,6 @@ if st.session_state.get("authenticated", False):
                                  key="claim_case",
                                  format="%d")
 
-    # 使用從 session_state 取得 premium_case 確保不是 None
     premium_val = st.session_state.get("premium_case", default_premium)
     remaining = CASE_TOTAL_ASSETS - premium_val
     if remaining >= 2440:
