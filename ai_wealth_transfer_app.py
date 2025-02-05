@@ -205,7 +205,7 @@ def simulate_diversified_strategy(tax_due: float) -> Dict[str, Any]:
     }
 
 # -------------------------------
-# 非保護區：遺產稅試算＋家族傳承策略建議（所有人皆可看到）
+# 非保護區：遺產稅試算＋家族傳承策略建議（所有人均可看到）
 # -------------------------------
 st.markdown("<h1 class='main-header'>遺產稅試算＋建議</h1>", unsafe_allow_html=True)
 st.selectbox("選擇適用地區", ["台灣（2025年起）"], index=0)
@@ -310,7 +310,7 @@ if st.session_state.get("authenticated", False):
     CASE_DISABLED = disabled_people_input
     CASE_OTHER = other_dependents_input
 
-    # 修改預設保費的計算：將預估遺產稅向上取整到百萬（以 100 為單位）
+    # 修改預設保費計算：將預估遺產稅向上取整到百萬（以 100 為單位）
     default_premium = int(math.ceil(tax_due / 100) * 100)
     if default_premium > CASE_TOTAL_ASSETS:
         default_premium = CASE_TOTAL_ASSETS
@@ -318,8 +318,10 @@ if st.session_state.get("authenticated", False):
     st.session_state["premium_case"] = st.session_state.get("premium_case", default_premium)
 
     def update_claim():
-        # 取得 premium_case，若為 None 則使用 default_premium
-        premium_val = st.session_state.get("premium_case", default_premium)
+        # 先取得 premium_case 的值，若為 None 則使用 default_premium
+        premium_val = st.session_state.get("premium_case")
+        if premium_val is None:
+            premium_val = default_premium
         new_default = int(premium_val * 1.5)
         if st.session_state.get("claim_case") is None or st.session_state.get("claim_case") == st.session_state.get("default_claim", new_default):
             st.session_state["claim_case"] = new_default
