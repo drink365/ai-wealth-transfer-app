@@ -316,10 +316,9 @@ st.markdown("""
 st.markdown("---")
 st.markdown("## 綜合計算與效益評估 (僅限授權使用者)")
 
-# 利用 st.empty() 建立登入容器
+# 建立一個空容器作為登入區塊
 login_container = st.empty()
 
-# 如果尚未登入，顯示登入表單
 if not st.session_state.get("authenticated", False):
     with login_container.form("login_form"):
         st.markdown("請先登入以檢視此區域內容。")
@@ -331,7 +330,7 @@ if not st.session_state.get("authenticated", False):
             if valid:
                 st.session_state.authenticated = True
                 st.session_state.user_name = user_name
-                # 顯示成功登入提示，等待1秒後清除
+                # 顯示成功登入提示，等待1秒後自動清除該提示並清除登入表單
                 success_container = st.empty()
                 success_container.success(f"登入成功！歡迎 {user_name}")
                 time.sleep(1)
@@ -340,7 +339,6 @@ if not st.session_state.get("authenticated", False):
             else:
                 st.session_state.authenticated = False
 
-# 如果已登入，顯示保護區內容
 if st.session_state.get("authenticated", False):
     st.markdown("請輸入規劃保單及提前贈與的金額")
     
@@ -355,12 +353,23 @@ if st.session_state.get("authenticated", False):
     if default_premium > CASE_TOTAL_ASSETS:
         default_premium = CASE_TOTAL_ASSETS
 
-    # 先讀取 premium_case 的值 (若使用者尚未更動則預設為 default_premium)
+    # 讀取購買保險保費
     premium_case = st.number_input("購買保險保費（萬）", min_value=0, max_value=CASE_TOTAL_ASSETS,
                                    value=default_premium, step=100, key="case_premium")
-    
-    default_claim = int(default_premium * 1.5)
-    # 根據 (總資產 - 保費) 決定提前贈與金額的預設值：
+
+    # 自動計算保險理賠金的核取方塊，預設勾選
+    auto_claim = st.checkbox("自動計算保險理賠金", value=True, key="auto_claim")
+    # 如果勾選自動計算，則保險理賠金的預設值為 premium_case * 1.5，且欄位鎖定不可編輯
+    if auto_claim:
+        default_claim = int(premium_case * 1.5)
+        claim_case = st.number_input("保險理賠金（萬）", min_value=0, max_value=100000,
+                                     value=default_claim, step=100, key="case_claim", disabled=True)
+    else:
+        # 讓使用者自行輸入理賠金
+        claim_case = st.number_input("保險理賠金（萬）", min_value=0, max_value=100000,
+                                     value=int(premium_case * 1.5), step=100, key="case_claim")
+
+    # 根據 (總資產 - premium_case) 決定提前贈與金額的預設值
     remaining = CASE_TOTAL_ASSETS - premium_case
     if remaining >= 2440:
         default_gift = 2440
@@ -369,9 +378,6 @@ if st.session_state.get("authenticated", False):
     else:
         default_gift = 0
 
-    # 接下來的輸入框使用預設值 default_claim 與 default_gift
-    claim_case = st.number_input("保險理賠金（萬）", min_value=0, max_value=100000,
-                                 value=default_claim, step=100, key="case_claim")
     gift_case = st.number_input("提前贈與金額（萬）", min_value=0, max_value=CASE_TOTAL_ASSETS - premium_case,
                                 value=default_gift, step=100, key="case_gift")
 
