@@ -31,6 +31,28 @@ TAX_BRACKETS = [
 # -------------------------------
 # 授權使用者設定（從 st.secrets 讀取）
 # -------------------------------
+# 請確保您的 secrets.toml 中有以下內容：
+#
+# [authorized_users.admin]
+# name = "管理者"
+# username = "admin"
+# password = "secret"
+# start_date = "2023-01-01"
+# end_date = "2025-12-31"
+#
+# [authorized_users.user1]
+# name = "使用者一"
+# username = "user1"
+# password = "pass1"
+# start_date = "2023-03-01"
+# end_date = "2025-12-31"
+#
+# [authorized_users.user2]
+# name = "使用者二"
+# username = "user2"
+# password = "pass2"
+# start_date = "2023-05-01"
+# end_date = "2024-12-31"
 authorized_users = st.secrets["authorized_users"]
 
 def check_credentials(input_username: str, input_password: str) -> (bool, str):
@@ -289,7 +311,10 @@ st.markdown("""
 st.markdown("---")
 st.markdown("## 綜合計算與效益評估 (僅限授權使用者)")
 
-if not st.session_state.get("authenticated", False):
+# 以一個變數記錄是否已登入
+auth = st.session_state.get("authenticated", False)
+
+if not auth:
     with st.form("login_form"):
         st.markdown("請先登入以檢視此區域內容。")
         login_username = st.text_input("帳號", key="login_form_username")
@@ -301,10 +326,11 @@ if not st.session_state.get("authenticated", False):
                 st.session_state.authenticated = True
                 st.session_state.user_name = user_name
                 st.success(f"登入成功！歡迎 {user_name}")
-                st.experimental_rerun()
             else:
                 st.session_state.authenticated = False
-    st.stop()
+    # 如果尚未驗證，則不顯示保護區內容，但程式繼續往下執行（行銷資訊區塊仍會顯示）
+    if not st.session_state.get("authenticated", False):
+        st.info("請先登入以檢視綜合計算與效益評估內容。")
 else:
     st.markdown("請輸入規劃保單及提前贈與的金額")
     
