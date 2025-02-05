@@ -31,27 +31,6 @@ TAX_BRACKETS = [
 # -------------------------------
 # 授權使用者設定（從 st.secrets 讀取）
 # -------------------------------
-# secrets.toml 中必須有 [authorized_users] 區塊，如下：
-# [authorized_users.admin]
-# name = "管理者"
-# username = "admin"
-# password = "secret"
-# start_date = "2023-01-01"
-# end_date = "2025-12-31"
-#
-# [authorized_users.user1]
-# name = "使用者一"
-# username = "user1"
-# password = "pass1"
-# start_date = "2023-03-01"
-# end_date = "2025-12-31"
-#
-# [authorized_users.user2]
-# name = "使用者二"
-# username = "user2"
-# password = "pass2"
-# start_date = "2023-05-01"
-# end_date = "2024-12-31"
 authorized_users = st.secrets["authorized_users"]
 
 def check_credentials(input_username: str, input_password: str) -> (bool, str):
@@ -237,7 +216,7 @@ def simulate_diversified_strategy(tax_due: float) -> Dict[str, Any]:
     }
 
 # -------------------------------
-# 非保護區：遺產稅試算＋家族傳承策略建議
+# 非保護區：遺產稅試算＋家族傳承策略建議（所有人均可看到）
 # -------------------------------
 st.markdown("<h1 class='main-header'>遺產稅試算＋建議</h1>", unsafe_allow_html=True)
 st.selectbox("選擇適用地區", ["台灣（2025年起）"], index=0)
@@ -322,6 +301,7 @@ if not st.session_state.get("authenticated", False):
                 st.session_state.authenticated = True
                 st.session_state.user_name = user_name
                 st.success(f"登入成功！歡迎 {user_name}")
+                st.experimental_rerun()
             else:
                 st.session_state.authenticated = False
     st.stop()
@@ -471,7 +451,7 @@ else:
     st.plotly_chart(fig_bar_case, use_container_width=True)
 
 # -------------------------------
-# 行銷資訊區塊（皆可檢視）
+# 行銷資訊區塊（所有人皆可檢視）
 # -------------------------------
 st.markdown("---")
 st.markdown("### 想了解更多？")
