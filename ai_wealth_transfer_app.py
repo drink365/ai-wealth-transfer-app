@@ -32,7 +32,7 @@ TAX_BRACKETS = [
 # -------------------------------
 # 授權使用者設定（從 st.secrets 讀取）
 # -------------------------------
-# 請確保您的 secrets.toml 中有以下內容：
+# 請確認您的 secrets.toml 中有以下內容：
 #
 # [authorized_users.admin]
 # name = "管理者"
@@ -205,7 +205,7 @@ def simulate_diversified_strategy(tax_due: float) -> Dict[str, Any]:
     }
 
 # -------------------------------
-# 非保護區：遺產稅試算＋家族傳承策略建議（所有人均可看到）
+# 非保護區：遺產稅試算＋家族傳承策略建議（所有人皆可看到）
 # -------------------------------
 st.markdown("<h1 class='main-header'>遺產稅試算＋建議</h1>", unsafe_allow_html=True)
 st.selectbox("選擇適用地區", ["台灣（2025年起）"], index=0)
@@ -318,8 +318,8 @@ if st.session_state.get("authenticated", False):
     st.session_state["premium_case"] = st.session_state.get("premium_case", default_premium)
 
     def update_claim():
-        # 先取得 premium_case 的值，若為 None 則使用 default_premium
         premium_val = st.session_state.get("premium_case")
+        # 若 premium_val 為 None，則使用 default_premium
         if premium_val is None:
             premium_val = default_premium
         new_default = int(premium_val * 1.5)
@@ -337,8 +337,8 @@ if st.session_state.get("authenticated", False):
                                    on_change=update_claim)
 
     if st.session_state.get("claim_case") is None:
-        st.session_state["claim_case"] = int(premium_case * 1.5)
-        st.session_state["default_claim"] = int(premium_case * 1.5)
+        st.session_state["claim_case"] = int((premium_case or default_premium) * 1.5)
+        st.session_state["default_claim"] = int((premium_case or default_premium) * 1.5)
     
     claim_case = st.number_input("保險理賠金（萬）",
                                  min_value=0,
