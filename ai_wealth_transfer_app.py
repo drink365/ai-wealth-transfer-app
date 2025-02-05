@@ -268,7 +268,6 @@ st.markdown("""
 st.markdown("---")
 st.markdown("## 綜合計算與效益評估 (僅限授權使用者)")
 
-# 建立登入區塊
 login_container = st.empty()
 
 if not st.session_state.get("authenticated", False):
@@ -293,7 +292,7 @@ if not st.session_state.get("authenticated", False):
 if st.session_state.get("authenticated", False):
     st.markdown("請輸入規劃保單及提前贈與的金額")
     
-    # 用戶輸入的基礎數據
+    # 取得基礎數據
     CASE_TOTAL_ASSETS = total_assets_input  
     CASE_SPOUSE = has_spouse
     CASE_ADULT_CHILDREN = adult_children_input
@@ -301,27 +300,24 @@ if st.session_state.get("authenticated", False):
     CASE_DISABLED = disabled_people_input
     CASE_OTHER = other_dependents_input
 
-    # 保費預設：直接等於預估遺產稅，但不得超過總資產
-    default_premium = int(tax_due)
+    # 保費預設：直接等於預估遺產稅，但向上取整到十萬位
+    default_premium = int(math.ceil(tax_due / 10) * 10)
     if default_premium > CASE_TOTAL_ASSETS:
         default_premium = CASE_TOTAL_ASSETS
 
-    # 將預設保費存入變數（不再依賴 session_state 變動）
-    premium_val = default_premium
+    premium_val = default_premium  # 此處直接用計算好的數值作為預設
 
     # 理賠金預設：保費的 1.5 倍
     default_claim = int(premium_val * 1.5)
 
-    # 贈與金額預設：根據剩餘資產（總資產 - 保費）的條件決定
+    # 贈與金額預設：若剩餘資產（總資產 - 保費）大於等於 244 萬，則預設為 244 萬；否則為 0
     remaining = CASE_TOTAL_ASSETS - premium_val
-    if remaining >= 2440:
-        default_gift = 2440
-    elif remaining >= 244:
+    if remaining >= 244:
         default_gift = 244
     else:
         default_gift = 0
 
-    # 顯示輸入框，使用預設值
+    # 顯示輸入框，使用預設值（這裡的預設值均不依登入狀態變動）
     premium_case = st.number_input("購買保險保費（萬）",
                                    min_value=0,
                                    max_value=CASE_TOTAL_ASSETS,
@@ -349,7 +345,6 @@ if st.session_state.get("authenticated", False):
     if gift_case > CASE_TOTAL_ASSETS - premium_case:
         st.error("錯誤：提前贈與金額不得高於【總資產】-【保費】！")
 
-    # 計算各項稅務與家人取得的淨資產
     _, tax_case_no_plan, _ = calculate_estate_tax(
         CASE_TOTAL_ASSETS,
         CASE_SPOUSE,
@@ -428,7 +423,7 @@ if st.session_state.get("authenticated", False):
         ]
     }
     df_case_results = pd.DataFrame(case_data)
-    baseline_value = df_case_results.loc[df_case_results["規劃策略"] == "沒有規劃", "家人總共取得（萬）"].iloc[0]
+    baseline_value = df_case_results.loc[df_case_results["規劃策略"]=="沒有規劃", "家人總共取得（萬）"].iloc[0]
     df_case_results["規劃效益"] = df_case_results["家人總共取得（萬）"] - baseline_value
 
     st.markdown("### 案例模擬結果")
@@ -448,7 +443,7 @@ if st.session_state.get("authenticated", False):
         text="家人總共取得（萬）"
     )
     fig_bar_case.update_traces(texttemplate='%{text:.0f}', textposition='outside')
-    baseline_case = df_viz_case.loc[df_viz_case["規劃策略"] == "沒有規劃", "家人總共取得（萬）"].iloc[0]
+    baseline_case = df_viz_case.loc[df_viz_case["規劃策略"]=="沒有規劃", "家人總共取得（萬）"].iloc[0]
     for idx, row in df_viz_case.iterrows():
         if row["規劃策略"] != "沒有規劃":
             diff = row["家人總共取得（萬）"] - baseline_case
