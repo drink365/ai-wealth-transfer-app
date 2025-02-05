@@ -315,7 +315,6 @@ if st.session_state.get("authenticated", False):
     if default_premium > CASE_TOTAL_ASSETS:
         default_premium = CASE_TOTAL_ASSETS
 
-    # 將 premium_case 儲存至 session_state（若尚未設定則使用 default_premium）
     st.session_state["premium_case"] = st.session_state.get("premium_case", default_premium)
 
     def update_claim():
@@ -347,7 +346,6 @@ if st.session_state.get("authenticated", False):
                                  key="claim_case",
                                  format="%d")
 
-    # 根據 (總資產 - premium_case) 決定提前贈與金額的預設值
     remaining = CASE_TOTAL_ASSETS - premium_case
     if remaining >= 2440:
         default_gift = 2440
