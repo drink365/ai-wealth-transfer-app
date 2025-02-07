@@ -196,13 +196,18 @@ class EstateTaxUI:
         if "login_time" not in st.session_state:
             st.session_state.login_time = None
 
-        # 從本地存儲恢復登入狀態
+        # 從 Cookie 恢復登入狀態
         st.markdown(
             """
             <script>
-            // 從本地存儲中讀取登入狀態
-            const authenticated = localStorage.getItem('authenticated');
-            const loginTime = localStorage.getItem('loginTime');
+            // 從 Cookie 中讀取登入狀態
+            function getCookie(name) {
+                const value = `; ${document.cookie}`;
+                const parts = value.split(`; ${name}=`);
+                if (parts.length === 2) return parts.pop().split(';').shift();
+            }
+            const authenticated = getCookie('authenticated');
+            const loginTime = getCookie('loginTime');
             if (authenticated && loginTime) {
                 // 將狀態傳回 Streamlit
                 window.parent.postMessage({
@@ -312,12 +317,12 @@ class EstateTaxUI:
                         st.session_state.authenticated = True
                         st.session_state.user_name = user_name
                         st.session_state.login_time = datetime.now().isoformat()  # 記錄登入時間
-                        # 將登入狀態保存到本地存儲
+                        # 將登入狀態保存到 Cookie
                         st.markdown(
                             f"""
                             <script>
-                            localStorage.setItem('authenticated', 'true');
-                            localStorage.setItem('loginTime', '{st.session_state.login_time}');
+                            document.cookie = 'authenticated=true; path=/';
+                            document.cookie = 'loginTime={st.session_state.login_time}; path=/';
                             </script>
                             """,
                             unsafe_allow_html=True
