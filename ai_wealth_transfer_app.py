@@ -62,17 +62,16 @@ config = {
         "expiry_days": 30,
         "key": "abcdef123456",
         "name": "login_cookie"
-    },
-    "preauthorized": {}
+    }
+    # 注意：此版本移除了 preauthorized 參數
 }
 
-# 建立 authenticator 物件
+# 建立 authenticator 物件（移除 preauthorized 參數）
 authenticator = stauth.Authenticate(
     config['credentials'],
     config['cookie']['name'],
     config['cookie']['key'],
-    config['cookie']['expiry_days'],
-    config.get('preauthorized', {})
+    config['cookie']['expiry_days']
 )
 
 # 執行登入流程
