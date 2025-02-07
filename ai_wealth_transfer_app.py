@@ -297,7 +297,7 @@ class EstateTaxUI:
                         st.session_state.user_name = user_name
                         st.session_state.login_time = datetime.now().isoformat()  # 記錄登入時間
                         # 將登入狀態保存到 URL 參數
-                        st.experimental_set_query_params(
+                        st.query_params(
                             authenticated="true",
                             login_time=st.session_state.login_time
                         )
