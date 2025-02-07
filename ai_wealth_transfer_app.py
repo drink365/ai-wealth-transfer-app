@@ -44,17 +44,17 @@ TAX_BRACKETS = [
 # 2. 使用 streamlit-authenticator 進行登入驗證
 # ===============================
 # 配置驗證參數
-# 請注意：下面的 hashed 密碼是示範用的（分別為 "secret" 與 "pass1" 的雜湊值）
+# 以下的 hashed 密碼是示範用的，分別為 "secret" 與 "pass1" 的雜湊值
 config = {
     "credentials": {
         "usernames": {
             "admin": {
                 "name": "管理者",
-                "password": "$2b$12$KIXR6iYFLmS.R5/jZ9YxxuW4p3WQBy2/3BL.vJ3Zx9.jTt.W1I6dW"  # "secret" 的雜湊值
+                "password": "$2b$12$KIXR6iYFLmS.R5/jZ9YxxuW4p3WQBy2/3BL.vJ3Zx9.jTt.W1I6dW"  # "secret"
             },
             "user1": {
                 "name": "使用者一",
-                "password": "$2b$12$1O5qZx6Z9I0KHVx9GG6LuO6K/h1Q5W/gH9Tq1N6IFqT3IY0Jh5F2O"  # "pass1" 的雜湊值
+                "password": "$2b$12$1O5qZx6Z9I0KHVx9GG6LuO6K/h1Q5W/gH9Tq1N6IFqT3IY0Jh5F2O"  # "pass1"
             }
         }
     },
@@ -85,8 +85,8 @@ else:
         st.error("帳號或密碼錯誤")
     else:
         st.warning("請輸入帳號與密碼")
-
-# 如果尚未登入，就停止後續程式的執行
+        
+# 尚未登入時停止程式
 if not authentication_status:
     st.stop()
 
@@ -275,7 +275,7 @@ def plot_strategy_comparison(df: pd.DataFrame) -> None:
     st.plotly_chart(fig_bar, use_container_width=True)
 
 # ===============================
-# 5. 主程式區塊（遺產稅試算與策略建議）
+# 5. 主程式區塊：遺產稅試算與策略建議
 # ===============================
 st.markdown("<h1 class='main-header'>遺產稅試算</h1>", unsafe_allow_html=True)
 st.selectbox("選擇適用地區", ["台灣（2025年起）"], index=0)
@@ -348,7 +348,6 @@ st.markdown("""
 st.markdown("---")
 st.markdown("## 模擬試算與效益評估 (僅限授權使用者)")
 
-# 下列模擬試算區塊可根據需求進行調整
 # 案例參數設定
 CASE_TOTAL_ASSETS: float = total_assets_input  
 CASE_SPOUSE: bool = has_spouse
@@ -503,5 +502,5 @@ st.markdown("### 想了解更多？")
 st.markdown("歡迎前往 **永傳家族辦公室**，我們提供專業的家族傳承與財富規劃服務。")
 st.markdown("[點此前往官網](https://www.gracefo.com)", unsafe_allow_html=True)
 
-# 登出按鈕（放在側邊欄）
+# 側邊欄提供登出按鈕
 authenticator.logout("登出", "sidebar")
