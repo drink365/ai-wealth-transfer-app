@@ -75,8 +75,11 @@ authenticator = stauth.Authenticate(
     config['cookie']['expiry_days']
 )
 
-# 執行登入流程，改用 location="unrendered"
-name, authentication_status, username = authenticator.login("登入系統", "unrendered")
+# 定義 fields 字典，用來設定表單中各欄位的顯示文字
+fields = {"username": "帳號", "password": "密碼", "login_button": "登入系統"}
+
+# 執行登入流程，傳入 fields 參數，並指定 location 為 "main"
+name, authentication_status, username = authenticator.login("登入", location="main", fields=fields)
 
 if authentication_status:
     st.success(f"登入成功！歡迎 {name}")
