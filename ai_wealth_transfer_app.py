@@ -74,8 +74,8 @@ authenticator = stauth.Authenticate(
     config['cookie']['expiry_days']
 )
 
-# 執行登入流程，將位置參數直接傳入
-name, authentication_status, username = authenticator.login("登入系統", "main")
+# 執行登入流程，將位置參數設定為 "sidebar" 使登入元件顯示在側邊欄
+name, authentication_status, username = authenticator.login("登入系統", "sidebar")
 
 if authentication_status:
     st.success(f"登入成功！歡迎 {name}")
