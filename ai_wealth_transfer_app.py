@@ -11,6 +11,18 @@ import time
 # ===============================
 st.set_page_config(page_title="遺產稅試算", layout="wide")
 
+# 響應式設計：自訂 CSS 調整手機板版面
+st.markdown(
+    """
+    <style>
+    /* 當螢幕寬度小於 600px 時，調整標題與文字大小 */
+    @media only screen and (max-width: 600px) {
+        .main-header {font-size: 24px !important;}
+        .stMarkdown {font-size: 14px !important;}
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
 # 常數設定，可考慮未來集中管理
 EXEMPT_AMOUNT = 1333          # 免稅額
 FUNERAL_EXPENSE = 138         # 喪葬費扣除額
@@ -264,6 +276,36 @@ def plot_strategy_comparison(df: pd.DataFrame) -> None:
     fig_bar.update_layout(margin=dict(t=100), yaxis_range=[0, max_value + dtick], autosize=True)
     st.plotly_chart(fig_bar, use_container_width=True)
 
+def plot_tax_savings_percentage(df: pd.DataFrame) -> None:
+    """
+    繪製「不同策略下遺產稅節省百分比」圖表，
+    以「沒有規劃」策略的稅額作為基準計算各策略節省百分比。
+    
+    :param df: DataFrame 需包含「規劃策略」與「遺產稅（萬）」欄位
+    """
+    # 找到基準策略的稅額
+    baseline_tax = df.loc[df["規劃策略"] == "沒有規劃", "遺產稅（萬）"].iloc[0]
+    # 若基準稅額為 0，則不顯示圖表
+    if baseline_tax == 0:
+        st.info("無規劃情況下遺產稅為 0，無法計算節省百分比。")
+        return
+
+    # 計算各策略的節省百分比
+    df = df.copy()
+    df["節省百分比"] = df["遺產稅（萬）"].apply(lambda x: round((baseline_tax - x) / baseline_tax * 100, 2))
+    # 製作圖表
+    fig = px.bar(
+        df,
+        x="規劃策略",
+        y="節省百分比",
+        title="不同策略下遺產稅節省百分比",
+        text="節省百分比"
+    )
+    fig.update_traces(texttemplate='%{text:.2f}%', textposition='outside')
+    max_percent = df["節省百分比"].max()
+    fig.update_layout(yaxis_range=[0, max_percent + 10], autosize=True, margin=dict(t=100))
+    st.plotly_chart(fig, use_container_width=True)
+
 # ===============================
 # 5. 主程式區塊（非保護區：遺產稅試算與策略建議）
 # ===============================
@@ -507,6 +549,9 @@ if st.session_state.get("authenticated", False):
 
     # 畫圖：不同策略下家人總共取得金額比較
     plot_strategy_comparison(df_case_results)
+    st.markdown("---")
+    # 畫圖：不同策略下遺產稅節省百分比
+    plot_tax_savings_percentage(df_case_results)
 
 # ===============================
 # 7. 行銷資訊（所有人皆可檢視）
