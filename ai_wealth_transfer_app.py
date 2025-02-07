@@ -67,7 +67,7 @@ config = {
 }
 
 # 建立 authenticator 物件
-# 請確認在 requirements.txt 中指定版本：streamlit-authenticator==0.3.2
+# 請確認在 requirements.txt 中至少指定版本：streamlit-authenticator>=0.4.1
 authenticator = stauth.Authenticate(
     config['credentials'],
     config['cookie']['name'],
@@ -78,8 +78,8 @@ authenticator = stauth.Authenticate(
 # 定義 fields 字典，用來設定表單中各欄位的顯示文字
 fields = {"username": "帳號", "password": "密碼", "login_button": "登入系統"}
 
-# 執行登入流程，只傳入表單名稱及 fields，預設 location 為 "main"
-name, authentication_status, username = authenticator.login("登入", fields=fields)
+# 執行登入流程，只傳入 fields 參數（location 使用預設值 "main"）
+name, authentication_status, username = authenticator.login(fields=fields)
 
 if authentication_status:
     st.success(f"登入成功！歡迎 {name}")
