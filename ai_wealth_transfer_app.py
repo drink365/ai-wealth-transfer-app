@@ -51,16 +51,16 @@ class EstateTaxCalculator:
         return total_deductions
 
     @st.cache_data
-    def calculate_estate_tax(self, total_assets: float, spouse: bool, adult_children: int,
+    def calculate_estate_tax(_self, total_assets: float, spouse: bool, adult_children: int,
                              other_dependents: int, disabled_people: int, parents: int) -> Tuple[float, int, float]:
         """計算遺產稅"""
-        deductions = self.compute_deductions(spouse, adult_children, other_dependents, disabled_people, parents)
-        if total_assets < self.constants.EXEMPT_AMOUNT + deductions:
+        deductions = _self.compute_deductions(spouse, adult_children, other_dependents, disabled_people, parents)
+        if total_assets < _self.constants.EXEMPT_AMOUNT + deductions:
             return 0, 0, deductions
-        taxable_amount = max(0, total_assets - self.constants.EXEMPT_AMOUNT - deductions)
+        taxable_amount = max(0, total_assets - _self.constants.EXEMPT_AMOUNT - deductions)
         tax_due = 0.0
         previous_bracket = 0
-        for bracket, rate in self.constants.TAX_BRACKETS:
+        for bracket, rate in _self.constants.TAX_BRACKETS:
             if taxable_amount > previous_bracket:
                 taxable_at_rate = min(taxable_amount, bracket) - previous_bracket
                 tax_due += taxable_at_rate * rate
@@ -80,8 +80,8 @@ class EstateTaxSimulator:
                            additional_inflow: float = 0) -> Tuple[float, int]:
         """
         計算調整後的淨資產：
-          - 調整：資產扣除（例如保費或贈與金額）
-          - additional_inflow：額外進帳（例如保險理賠金或贈與回補）
+          - adjustment: 資產扣除（例如保費或贈與金額）
+          - additional_inflow: 額外進帳（例如保險理賠金或贈與回補）
         """
         adjusted_assets = assets - adjustment
         _, tax_due, _ = self.calculator.calculate_estate_tax(
@@ -347,25 +347,22 @@ class EstateTaxUI:
             if gift_case > CASE_TOTAL_ASSETS - premium_case:
                 st.error("錯誤：提前贈與金額不得高於【總資產】-【保費】！")
 
-            # 無規劃方案
+            # 使用自定義函數計算各案例的淨資產與稅額
             net_no_plan, _ = self.compute_net_for_case(CASE_TOTAL_ASSETS, 0, CASE_SPOUSE,
                                                          CASE_ADULT_CHILDREN, CASE_OTHER, CASE_DISABLED, CASE_PARENTS)
 
-            # 提前贈與方案
             net_gift, tax_gift = self.compute_net_for_case(CASE_TOTAL_ASSETS, gift_case, CASE_SPOUSE,
                                                              CASE_ADULT_CHILDREN, CASE_OTHER, CASE_DISABLED, CASE_PARENTS)
 
-            # 保險方案
             net_insurance, tax_insurance = self.compute_net_for_case(CASE_TOTAL_ASSETS, premium_case, CASE_SPOUSE,
                                                                       CASE_ADULT_CHILDREN, CASE_OTHER, CASE_DISABLED, CASE_PARENTS,
                                                                       additional_inflow=claim_case)
 
-            # 綜合方案：先扣除保費與贈與金，再補上理賠金
             combined_assets = CASE_TOTAL_ASSETS - premium_case - gift_case
             net_combo_not_tax, tax_combo_not_tax = self.compute_net_for_case(combined_assets, 0, CASE_SPOUSE,
                                                                              CASE_ADULT_CHILDREN, CASE_OTHER, CASE_DISABLED, CASE_PARENTS,
                                                                              additional_inflow=claim_case + gift_case)
-            # 綜合方案（被實質課稅）：將理賠金計入資產再計算課稅
+
             combined_taxed_assets = CASE_TOTAL_ASSETS - premium_case - gift_case + claim_case
             net_combo_tax, tax_combo_tax = self.compute_net_for_case(combined_taxed_assets, 0, CASE_SPOUSE,
                                                                      CASE_ADULT_CHILDREN, CASE_OTHER, CASE_DISABLED, CASE_PARENTS,
