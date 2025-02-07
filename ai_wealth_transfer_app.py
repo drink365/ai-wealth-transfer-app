@@ -7,7 +7,6 @@ from datetime import datetime
 import time
 from dataclasses import dataclass, field
 
-
 # ===============================
 # 1. 常數與設定
 # ===============================
@@ -29,13 +28,11 @@ class TaxConstants:
         ]
     )
 
-
 # ===============================
 # 2. 稅務計算邏輯
 # ===============================
 class EstateTaxCalculator:
     """遺產稅計算器"""
-
     def __init__(self, constants: TaxConstants):
         self.constants = constants
 
@@ -44,92 +41,116 @@ class EstateTaxCalculator:
         """計算總扣除額"""
         spouse_deduction = self.constants.SPOUSE_DEDUCTION_VALUE if spouse else 0
         total_deductions = (
-                spouse_deduction +
-                self.constants.FUNERAL_EXPENSE +
-                (disabled_people * self.constants.DISABLED_DEDUCTION) +
-                (adult_children * self.constants.ADULT_CHILD_DEDUCTION) +
-                (other_dependents * self.constants.OTHER_DEPENDENTS_DEDUCTION) +
-                (parents * self.constants.PARENTS_DEDUCTION)
+            spouse_deduction +
+            self.constants.FUNERAL_EXPENSE +
+            (disabled_people * self.constants.DISABLED_DEDUCTION) +
+            (adult_children * self.constants.ADULT_CHILD_DEDUCTION) +
+            (other_dependents * self.constants.OTHER_DEPENDENTS_DEDUCTION) +
+            (parents * self.constants.PARENTS_DEDUCTION)
         )
         return total_deductions
 
     @st.cache_data
-    def calculate_estate_tax(_self, total_assets: float, spouse: bool, adult_children: int,
-                             other_dependents: int, disabled_people: int, parents: int) -> Tuple[float, float, float]:
+    def calculate_estate_tax(self, total_assets: float, spouse: bool, adult_children: int,
+                             other_dependents: int, disabled_people: int, parents: int) -> Tuple[float, int, float]:
         """計算遺產稅"""
-        deductions = _self.compute_deductions(spouse, adult_children, other_dependents, disabled_people, parents)
-        if total_assets < _self.constants.EXEMPT_AMOUNT + deductions:
+        deductions = self.compute_deductions(spouse, adult_children, other_dependents, disabled_people, parents)
+        if total_assets < self.constants.EXEMPT_AMOUNT + deductions:
             return 0, 0, deductions
-        taxable_amount = max(0, total_assets - _self.constants.EXEMPT_AMOUNT - deductions)
+        taxable_amount = max(0, total_assets - self.constants.EXEMPT_AMOUNT - deductions)
         tax_due = 0.0
         previous_bracket = 0
-        for bracket, rate in _self.constants.TAX_BRACKETS:
+        for bracket, rate in self.constants.TAX_BRACKETS:
             if taxable_amount > previous_bracket:
                 taxable_at_rate = min(taxable_amount, bracket) - previous_bracket
                 tax_due += taxable_at_rate * rate
                 previous_bracket = bracket
-        return taxable_amount, round(tax_due, 0), deductions
-
+        return taxable_amount, int(round(tax_due, 0)), deductions
 
 # ===============================
 # 3. 模擬試算邏輯
 # ===============================
 class EstateTaxSimulator:
     """遺產稅模擬試算器"""
-
     def __init__(self, calculator: EstateTaxCalculator):
         self.calculator = calculator
 
+    def compute_net_assets(self, assets: float, adjustment: float, spouse: bool, adult_children: int,
+                           other_dependents: int, disabled_people: int, parents: int,
+                           additional_inflow: float = 0) -> Tuple[float, int]:
+        """
+        計算調整後的淨資產：
+          - 調整：資產扣除（例如保費或贈與金額）
+          - additional_inflow：額外進帳（例如保險理賠金或贈與回補）
+        """
+        adjusted_assets = assets - adjustment
+        _, tax_due, _ = self.calculator.calculate_estate_tax(
+            adjusted_assets, spouse, adult_children, other_dependents, disabled_people, parents
+        )
+        net = adjusted_assets - tax_due + additional_inflow
+        return net, tax_due
+
     def simulate_insurance_strategy(self, total_assets: float, spouse: bool, adult_children: int,
                                     other_dependents: int, disabled_people: int, parents: int,
-                                    premium_ratio: float, premium: float) -> Dict[str, Any]:
-        """模擬保險策略"""
-        _, tax_no_insurance, _ = self.calculator.calculate_estate_tax(total_assets, spouse, adult_children,
-                                                                     other_dependents, disabled_people, parents)
-        net_no_insurance = total_assets - tax_no_insurance
-        claim_amount = round(premium * premium_ratio, 0)
-        new_total_assets = total_assets - premium
-        _, tax_new, _ = self.calculator.calculate_estate_tax(new_total_assets, spouse, adult_children,
-                                                            other_dependents, disabled_people, parents)
-        net_not_taxed = round(new_total_assets - tax_new + claim_amount, 0)
-        effect_not_taxed = net_not_taxed - net_no_insurance
-        effective_estate = total_assets - premium + claim_amount
-        _, tax_effective, _ = self.calculator.calculate_estate_tax(effective_estate, spouse, adult_children,
-                                                                  other_dependents, disabled_people, parents)
-        net_taxed = round(effective_estate - tax_effective, 0)
-        effect_taxed = net_taxed - net_no_insurance
+                                    premium: float, claim_ratio: float) -> Dict[str, Any]:
+        """
+        模擬保險策略：
+          - 保費支付後，原資產變化及保險理賠金補充
+        """
+        # 基礎無規劃結果
+        _, tax_no_plan, _ = self.calculator.calculate_estate_tax(total_assets, spouse, adult_children,
+                                                                 other_dependents, disabled_people, parents)
+        net_no_plan = total_assets - tax_no_plan
+
+        # 保險規劃（僅扣除保費，並補上理賠金）
+        claim_amount = int(round(premium * claim_ratio, 0))
+        net_insurance, tax_insurance = self.compute_net_assets(total_assets, premium, spouse, adult_children,
+                                                               other_dependents, disabled_people, parents,
+                                                               additional_inflow=claim_amount)
+        effect_insurance = net_insurance - net_no_plan
+
+        # 綜合規劃效果（將保費扣除後資產與理賠金再參與課稅計算）
+        effective_assets = total_assets - premium + claim_amount
+        _, tax_effective, _ = self.calculator.calculate_estate_tax(effective_assets, spouse, adult_children,
+                                                                   other_dependents, disabled_people, parents)
+        net_effective = effective_assets - tax_effective
+        effect_effective = net_effective - net_no_plan
+
         return {
             "沒有規劃": {
                 "總資產": int(total_assets),
-                "預估遺產稅": int(tax_no_insurance),
-                "家人總共取得": int(net_no_insurance)
+                "預估遺產稅": int(tax_no_plan),
+                "家人總共取得": int(net_no_plan)
             },
             "有規劃保單": {
-                "預估遺產稅": int(tax_new),
-                "家人總共取得": int(net_not_taxed),
-                "規劃效果": int(effect_not_taxed)
+                "預估遺產稅": int(tax_insurance),
+                "家人總共取得": int(net_insurance),
+                "規劃效果": int(effect_insurance)
             },
             "有規劃保單 (被實質課稅)": {
                 "預估遺產稅": int(tax_effective),
-                "家人總共取得": int(net_taxed),
-                "規劃效果": int(effect_taxed)
+                "家人總共取得": int(net_effective),
+                "規劃效果": int(effect_effective)
             }
         }
 
     def simulate_gift_strategy(self, total_assets: float, spouse: bool, adult_children: int,
                                other_dependents: int, disabled_people: int, parents: int,
                                years: int) -> Dict[str, Any]:
-        """模擬贈與策略"""
+        """
+        模擬贈與策略：
+          - 利用每年免稅額進行贈與後的資產與稅負模擬
+        """
         annual_gift_exemption = 244
         total_gift = years * annual_gift_exemption
-        simulated_total_assets = max(total_assets - total_gift, 0)
-        _, tax_sim, _ = self.calculator.calculate_estate_tax(simulated_total_assets, spouse, adult_children,
-                                                            other_dependents, disabled_people, parents)
-        net_after = round(simulated_total_assets - tax_sim + total_gift, 0)
+        simulated_assets = max(total_assets - total_gift, 0)
+        net_gift, tax_sim = self.compute_net_assets(total_assets, total_gift, spouse, adult_children,
+                                                     other_dependents, disabled_people, parents,
+                                                     additional_inflow=total_gift)
         _, tax_original, _ = self.calculator.calculate_estate_tax(total_assets, spouse, adult_children,
-                                                                 other_dependents, disabled_people, parents)
+                                                                  other_dependents, disabled_people, parents)
         net_original = total_assets - tax_original
-        effect = net_after - net_original
+        effect = net_gift - net_original
         return {
             "沒有規劃": {
                 "總資產": int(total_assets),
@@ -137,10 +158,10 @@ class EstateTaxSimulator:
                 "家人總共取得": int(net_original)
             },
             "提前贈與後": {
-                "總資產": int(simulated_total_assets),
+                "總資產": int(simulated_assets),
                 "預估遺產稅": int(tax_sim),
                 "總贈與金額": int(total_gift),
-                "家人總共取得": int(net_after),
+                "家人總共取得": int(net_gift),
                 "贈與年數": years
             },
             "規劃效果": {
@@ -148,11 +169,10 @@ class EstateTaxSimulator:
             }
         }
 
-
 # ===============================
 # 4. 登入驗證（保護區用）
 # ===============================
-def check_credentials(input_username: str, input_password: str) -> (bool, str):
+def check_credentials(input_username: str, input_password: str) -> Tuple[bool, str]:
     """檢查使用者登入憑證"""
     authorized_users = st.secrets["authorized_users"]
     if input_username in authorized_users:
@@ -173,13 +193,11 @@ def check_credentials(input_username: str, input_password: str) -> (bool, str):
         st.error("查無此使用者")
         return False, ""
 
-
 # ===============================
 # 5. Streamlit 介面
 # ===============================
 class EstateTaxUI:
     """遺產稅試算介面"""
-
     def __init__(self, calculator: EstateTaxCalculator, simulator: EstateTaxSimulator):
         self.calculator = calculator
         self.simulator = simulator
@@ -216,7 +234,7 @@ class EstateTaxUI:
             st.error(f"計算遺產稅時發生錯誤：{e}")
             return
 
-        st.markdown("<h3>預估遺產稅：{0:,.0f} 萬元</h3>".format(tax_due), unsafe_allow_html=True)
+        st.markdown(f"<h3>預估遺產稅：{tax_due:,.0f} 萬元</h3>", unsafe_allow_html=True)
 
         col1, col2, col3 = st.columns(3)
         with col1:
@@ -262,7 +280,6 @@ class EstateTaxUI:
         st.markdown("## 模擬試算與效益評估 (僅限授權使用者)")
 
         login_container = st.empty()
-
         if not st.session_state.get("authenticated", False):
             with login_container.form("login_form"):
                 st.markdown("請先登入以檢視此區域內容。")
@@ -274,10 +291,8 @@ class EstateTaxUI:
                     if valid:
                         st.session_state.authenticated = True
                         st.session_state.user_name = user_name
-                        success_container = st.empty()
-                        success_container.success(f"登入成功！歡迎 {user_name}")
+                        st.success(f"登入成功！歡迎 {user_name}")
                         time.sleep(1)
-                        success_container.empty()
                         login_container.empty()
                     else:
                         st.session_state.authenticated = False
@@ -285,6 +300,7 @@ class EstateTaxUI:
         if st.session_state.get("authenticated", False):
             st.markdown("請檢視下方的模擬試算與效益評估結果")
 
+            # 統一定義家庭狀況參數
             CASE_TOTAL_ASSETS = total_assets_input
             CASE_SPOUSE = has_spouse
             CASE_ADULT_CHILDREN = adult_children_input
@@ -292,21 +308,17 @@ class EstateTaxUI:
             CASE_DISABLED = disabled_people_input
             CASE_OTHER = other_dependents_input
 
-            # 保費預設：直接等於預估遺產稅，向上取整到十萬位（例如321萬變為330萬），若超過總資產則取總資產
+            # 保費設定：依預估遺產稅四捨五入至十位，且不超過總資產
             default_premium = int(math.ceil(tax_due / 10) * 10)
-            if default_premium > CASE_TOTAL_ASSETS:
-                default_premium = CASE_TOTAL_ASSETS
+            default_premium = min(default_premium, CASE_TOTAL_ASSETS)
             premium_val = default_premium
 
-            # 理賠金預設：保費的 1.5 倍
+            # 理賠金：保費的1.5倍
             default_claim = int(premium_val * 1.5)
 
-            # 贈與金額預設：若剩餘資產 (總資產 - 保費) 大於等於 244 萬，則預設為 244 萬；否則為 0
+            # 贈與金額：若剩餘資產大於等於244萬，則預設為244，否則為0
             remaining = CASE_TOTAL_ASSETS - premium_val
-            if remaining >= 244:
-                default_gift = 244
-            else:
-                default_gift = 0
+            default_gift = 244 if remaining >= 244 else 0
 
             premium_case = st.number_input("購買保險保費（萬）",
                                            min_value=0,
@@ -335,59 +347,29 @@ class EstateTaxUI:
             if gift_case > CASE_TOTAL_ASSETS - premium_case:
                 st.error("錯誤：提前贈與金額不得高於【總資產】-【保費】！")
 
-            _, tax_case_no_plan, _ = self.calculator.calculate_estate_tax(
-                CASE_TOTAL_ASSETS,
-                CASE_SPOUSE,
-                CASE_ADULT_CHILDREN,
-                CASE_OTHER,
-                CASE_DISABLED,
-                CASE_PARENTS
-            )
-            net_case_no_plan = CASE_TOTAL_ASSETS - tax_case_no_plan
+            # 無規劃方案
+            net_no_plan, _ = self.compute_net_for_case(CASE_TOTAL_ASSETS, 0, CASE_SPOUSE,
+                                                         CASE_ADULT_CHILDREN, CASE_OTHER, CASE_DISABLED, CASE_PARENTS)
 
-            effective_case_gift = CASE_TOTAL_ASSETS - gift_case
-            _, tax_case_gift, _ = self.calculator.calculate_estate_tax(
-                effective_case_gift,
-                CASE_SPOUSE,
-                CASE_ADULT_CHILDREN,
-                CASE_OTHER,
-                CASE_DISABLED,
-                CASE_PARENTS
-            )
-            net_case_gift = effective_case_gift - tax_case_gift + gift_case
+            # 提前贈與方案
+            net_gift, tax_gift = self.compute_net_for_case(CASE_TOTAL_ASSETS, gift_case, CASE_SPOUSE,
+                                                             CASE_ADULT_CHILDREN, CASE_OTHER, CASE_DISABLED, CASE_PARENTS)
 
-            effective_case_insurance = CASE_TOTAL_ASSETS - premium_case
-            _, tax_case_insurance, _ = self.calculator.calculate_estate_tax(
-                effective_case_insurance,
-                CASE_SPOUSE,
-                CASE_ADULT_CHILDREN,
-                CASE_OTHER,
-                CASE_DISABLED,
-                CASE_PARENTS
-            )
-            net_case_insurance = effective_case_insurance - tax_case_insurance + claim_case
+            # 保險方案
+            net_insurance, tax_insurance = self.compute_net_for_case(CASE_TOTAL_ASSETS, premium_case, CASE_SPOUSE,
+                                                                      CASE_ADULT_CHILDREN, CASE_OTHER, CASE_DISABLED, CASE_PARENTS,
+                                                                      additional_inflow=claim_case)
 
-            effective_case_combo_not_tax = CASE_TOTAL_ASSETS - gift_case - premium_case
-            _, tax_case_combo_not_tax, _ = self.calculator.calculate_estate_tax(
-                effective_case_combo_not_tax,
-                CASE_SPOUSE,
-                CASE_ADULT_CHILDREN,
-                CASE_OTHER,
-                CASE_DISABLED,
-                CASE_PARENTS
-            )
-            net_case_combo_not_tax = effective_case_combo_not_tax - tax_case_combo_not_tax + claim_case + gift_case
-
-            effective_case_combo_tax = CASE_TOTAL_ASSETS - gift_case - premium_case + claim_case
-            _, tax_case_combo_tax, _ = self.calculator.calculate_estate_tax(
-                effective_case_combo_tax,
-                CASE_SPOUSE,
-                CASE_ADULT_CHILDREN,
-                CASE_OTHER,
-                CASE_DISABLED,
-                CASE_PARENTS
-            )
-            net_case_combo_tax = effective_case_combo_tax - tax_case_combo_tax + gift_case
+            # 綜合方案：先扣除保費與贈與金，再補上理賠金
+            combined_assets = CASE_TOTAL_ASSETS - premium_case - gift_case
+            net_combo_not_tax, tax_combo_not_tax = self.compute_net_for_case(combined_assets, 0, CASE_SPOUSE,
+                                                                             CASE_ADULT_CHILDREN, CASE_OTHER, CASE_DISABLED, CASE_PARENTS,
+                                                                             additional_inflow=claim_case + gift_case)
+            # 綜合方案（被實質課稅）：將理賠金計入資產再計算課稅
+            combined_taxed_assets = CASE_TOTAL_ASSETS - premium_case - gift_case + claim_case
+            net_combo_tax, tax_combo_tax = self.compute_net_for_case(combined_taxed_assets, 0, CASE_SPOUSE,
+                                                                     CASE_ADULT_CHILDREN, CASE_OTHER, CASE_DISABLED, CASE_PARENTS,
+                                                                     additional_inflow=gift_case)
 
             case_data = {
                 "規劃策略": [
@@ -398,18 +380,10 @@ class EstateTaxUI:
                     "提前贈與＋購買保險（被實質課稅）"
                 ],
                 "遺產稅（萬）": [
-                    int(tax_case_no_plan),
-                    int(tax_case_gift),
-                    int(tax_case_insurance),
-                    int(tax_case_combo_not_tax),
-                    int(tax_case_combo_tax)
+                    int(_), int(tax_gift), int(tax_insurance), int(tax_combo_not_tax), int(tax_combo_tax)
                 ],
                 "家人總共取得（萬）": [
-                    int(net_case_no_plan),
-                    int(net_case_gift),
-                    int(net_case_insurance),
-                    int(net_case_combo_not_tax),
-                    int(net_case_combo_tax)
+                    int(net_no_plan), int(net_gift), int(net_insurance), int(net_combo_not_tax), int(net_combo_tax)
                 ]
             }
             df_case_results = pd.DataFrame(case_data)
@@ -424,17 +398,16 @@ class EstateTaxUI:
             st.markdown(f"**總資產：{int(CASE_TOTAL_ASSETS):,d} 萬**  |  **家庭狀況：{family_status}**")
             st.table(df_case_results)
 
-            df_viz_case = df_case_results.copy()
             fig_bar_case = px.bar(
-                df_viz_case,
+                df_case_results,
                 x="規劃策略",
                 y="家人總共取得（萬）",
                 title="不同規劃策略下家人總共取得金額比較（案例）",
                 text="家人總共取得（萬）"
             )
             fig_bar_case.update_traces(texttemplate='%{text:.0f}', textposition='outside')
-            baseline_case = df_viz_case.loc[df_viz_case["規劃策略"] == "沒有規劃", "家人總共取得（萬）"].iloc[0]
-            for idx, row in df_viz_case.iterrows():
+            baseline_case = df_case_results.loc[df_case_results["規劃策略"] == "沒有規劃", "家人總共取得（萬）"].iloc[0]
+            for idx, row in df_case_results.iterrows():
                 if row["規劃策略"] != "沒有規劃":
                     diff = row["家人總共取得（萬）"] - baseline_case
                     diff_text = f"+{int(diff)}" if diff >= 0 else f"{int(diff)}"
@@ -446,19 +419,26 @@ class EstateTaxUI:
                         font=dict(color="yellow", size=14),
                         yshift=-50
                     )
-            max_value = df_viz_case["家人總共取得（萬）"].max()
+            max_value = df_case_results["家人總共取得（萬）"].max()
             dtick = max_value / 10
             fig_bar_case.update_layout(margin=dict(t=100), yaxis_range=[0, max_value + dtick], autosize=True)
             st.plotly_chart(fig_bar_case, use_container_width=True)
 
-        # ===============================
-        # 行銷資訊（所有人皆可檢視）
-        # ===============================
         st.markdown("---")
         st.markdown("### 想了解更多？")
         st.markdown("歡迎前往 **永傳家族辦公室**，我們提供專業的家族傳承與財富規劃服務。")
         st.markdown("[點此前往官網](https://www.gracefo.com)", unsafe_allow_html=True)
 
+    def compute_net_for_case(self, assets: float, adjustment: float, spouse: bool, adult_children: int,
+                             other_dependents: int, disabled_people: int, parents: int,
+                             additional_inflow: float = 0) -> Tuple[float, int]:
+        """統一計算各案例的淨資產與稅額"""
+        adjusted_assets = assets - adjustment
+        _, tax_due, _ = self.calculator.calculate_estate_tax(
+            adjusted_assets, spouse, adult_children, other_dependents, disabled_people, parents
+        )
+        net = adjusted_assets - tax_due + additional_inflow
+        return net, tax_due
 
 # ===============================
 # 6. 主程式
