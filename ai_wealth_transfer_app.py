@@ -63,7 +63,7 @@ config = {
         "key": "abcdef123456",
         "name": "login_cookie"
     }
-    # 注意：此版本移除了 preauthorized 參數
+    # 此版本移除了 preauthorized 參數
 }
 
 # 建立 authenticator 物件（移除 preauthorized 參數）
@@ -74,8 +74,8 @@ authenticator = stauth.Authenticate(
     config['cookie']['expiry_days']
 )
 
-# 執行登入流程
-name, authentication_status, username = authenticator.login('登入系統', 'main')
+# 執行登入流程，使用關鍵字參數 location 指定顯示位置
+name, authentication_status, username = authenticator.login('登入系統', location='main')
 
 if authentication_status:
     st.success(f"登入成功！歡迎 {name}")
