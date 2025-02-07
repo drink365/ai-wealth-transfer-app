@@ -66,7 +66,8 @@ config = {
     # 此版本移除了 preauthorized 參數
 }
 
-# 建立 authenticator 物件（請確保你的 requirements.txt 中使用 streamlit-authenticator==0.3.2）
+# 建立 authenticator 物件
+# 請確認在 requirements.txt 中指定版本：streamlit-authenticator==0.3.2
 authenticator = stauth.Authenticate(
     config['credentials'],
     config['cookie']['name'],
@@ -74,8 +75,8 @@ authenticator = stauth.Authenticate(
     config['cookie']['expiry_days']
 )
 
-# 執行登入流程，使用 location="main"
-name, authentication_status, username = authenticator.login("登入系統", location="main")
+# 執行登入流程，改用 location="unrendered"
+name, authentication_status, username = authenticator.login("登入系統", "unrendered")
 
 if authentication_status:
     st.success(f"登入成功！歡迎 {name}")
