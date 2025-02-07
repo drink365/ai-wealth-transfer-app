@@ -196,9 +196,32 @@ class EstateTaxUI:
         if "login_time" not in st.session_state:
             st.session_state.login_time = None
 
+        # 從本地存儲恢復登入狀態
+        st.markdown(
+            """
+            <script>
+            // 從本地存儲中讀取登入狀態
+            const authenticated = localStorage.getItem('authenticated');
+            const loginTime = localStorage.getItem('loginTime');
+            if (authenticated && loginTime) {
+                // 將狀態傳回 Streamlit
+                window.parent.postMessage({
+                    type: 'streamlit:setSessionState',
+                    state: {
+                        authenticated: authenticated === 'true',
+                        login_time: loginTime
+                    }
+                }, '*');
+            }
+            </script>
+            """,
+            unsafe_allow_html=True
+        )
+
         # 檢查登入狀態是否過期
         if st.session_state.authenticated and st.session_state.login_time:
-            time_since_login = datetime.now() - st.session_state.login_time
+            login_time = datetime.fromisoformat(st.session_state.login_time)
+            time_since_login = datetime.now() - login_time
             if time_since_login > timedelta(hours=1):  # 設置有效時間為 1 小時
                 st.session_state.authenticated = False
                 st.session_state.login_time = None
@@ -288,7 +311,17 @@ class EstateTaxUI:
                     if valid:
                         st.session_state.authenticated = True
                         st.session_state.user_name = user_name
-                        st.session_state.login_time = datetime.now()  # 記錄登入時間
+                        st.session_state.login_time = datetime.now().isoformat()  # 記錄登入時間
+                        # 將登入狀態保存到本地存儲
+                        st.markdown(
+                            f"""
+                            <script>
+                            localStorage.setItem('authenticated', 'true');
+                            localStorage.setItem('loginTime', '{st.session_state.login_time}');
+                            </script>
+                            """,
+                            unsafe_allow_html=True
+                        )
                         success_container = st.empty()
                         success_container.success(f"登入成功！歡迎 {user_name}")
                         time.sleep(1)
