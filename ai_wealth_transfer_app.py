@@ -196,32 +196,11 @@ class EstateTaxUI:
         if "login_time" not in st.session_state:
             st.session_state.login_time = None
 
-        # 從 Cookie 恢復登入狀態
-        st.markdown(
-            """
-            <script>
-            // 從 Cookie 中讀取登入狀態
-            function getCookie(name) {
-                const value = `; ${document.cookie}`;
-                const parts = value.split(`; ${name}=`);
-                if (parts.length === 2) return parts.pop().split(';').shift();
-            }
-            const authenticated = getCookie('authenticated');
-            const loginTime = getCookie('loginTime');
-            if (authenticated && loginTime) {
-                // 將狀態傳回 Streamlit
-                window.parent.postMessage({
-                    type: 'streamlit:setSessionState',
-                    state: {
-                        authenticated: authenticated === 'true',
-                        login_time: loginTime
-                    }
-                }, '*');
-            }
-            </script>
-            """,
-            unsafe_allow_html=True
-        )
+        # 從 URL 參數恢復登入狀態
+        query_params = st.experimental_get_query_params()
+        if "authenticated" in query_params and "login_time" in query_params:
+            st.session_state.authenticated = query_params["authenticated"][0] == "true"
+            st.session_state.login_time = query_params["login_time"][0]
 
         # 檢查登入狀態是否過期
         if st.session_state.authenticated and st.session_state.login_time:
@@ -317,15 +296,10 @@ class EstateTaxUI:
                         st.session_state.authenticated = True
                         st.session_state.user_name = user_name
                         st.session_state.login_time = datetime.now().isoformat()  # 記錄登入時間
-                        # 將登入狀態保存到 Cookie
-                        st.markdown(
-                            f"""
-                            <script>
-                            document.cookie = 'authenticated=true; path=/';
-                            document.cookie = 'loginTime={st.session_state.login_time}; path=/';
-                            </script>
-                            """,
-                            unsafe_allow_html=True
+                        # 將登入狀態保存到 URL 參數
+                        st.experimental_set_query_params(
+                            authenticated="true",
+                            login_time=st.session_state.login_time
                         )
                         success_container = st.empty()
                         success_container.success(f"登入成功！歡迎 {user_name}")
