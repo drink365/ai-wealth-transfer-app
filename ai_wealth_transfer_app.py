@@ -197,7 +197,7 @@ class EstateTaxUI:
             st.session_state.login_time = None
 
         # 從 URL 參數恢復登入狀態
-        query_params = st.experimental_get_query_params()
+        query_params = st.query_params()
         if "authenticated" in query_params and "login_time" in query_params:
             st.session_state.authenticated = query_params["authenticated"][0] == "true"
             st.session_state.login_time = query_params["login_time"][0]
