@@ -187,11 +187,11 @@ class EstateTaxUI:
     def render_ui(self):
         """渲染 Streamlit 介面"""
         st.set_page_config(page_title="AI秒算遺產稅", layout="wide")
-        # 注入 CSS：針對內容文字加大1號，標題則還原預設並對主標題做特殊設定（2em 且置中）
+        # 注入 CSS：調整字體大小、標題顏色及區塊樣式
         st.markdown(
             """
             <style>
-            /* 將段落、標籤、輸入框等內容文字放大 1.125 倍 */
+            /* 全站內容文字稍微放大 */
             body p, body span, body label, body input, body textarea, body select, body button, body li, body a {
                 font-size: 1.125em !important;
             }
@@ -199,12 +199,29 @@ class EstateTaxUI:
             h1, h2, h3, h4, h5, h6 {
                 font-size: revert !important;
             }
-            /* 主標題特殊樣式：2em 且置中 */
+            /* 主標題特殊樣式：2em 且置中，藍色 */
             h1.main-header {
                 font-size: 2em !important;
                 text-align: center;
+                color: #2E86AB;
             }
-            /* 響應式設計：小螢幕下可進一步調整（此處示範縮減邊距） */
+            /* 第二級標題：橘色 */
+            h2 {
+                color: #E27D60;
+            }
+            /* 第三級標題：深綠 */
+            h3 {
+                color: #2D6A4F;
+            }
+            /* 強調區塊樣式 */
+            .highlight-box {
+                background-color: #F7F7F7;
+                padding: 1rem;
+                border: 1px solid #DDD;
+                border-radius: 8px;
+                margin-bottom: 1rem;
+            }
+            /* 響應式設計：小螢幕下可進一步調整邊距 */
             @media only screen and (max-width: 768px) {
                 .css-18e3th9 {
                     padding-left: 1rem;
