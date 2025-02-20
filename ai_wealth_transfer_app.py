@@ -187,13 +187,20 @@ class EstateTaxUI:
     def render_ui(self):
         """渲染 Streamlit 介面"""
         st.set_page_config(page_title="遺產稅試算＋建議", layout="wide")
-        # 注入 CSS，僅示範響應式設計，不改變預設文字大小
+        # 注入 CSS：僅針對內容文字加大1號，而標題維持原樣
         st.markdown(
             """
             <style>
-            /* 響應式設計示範，可根據螢幕大小進行其他調整 */
+            /* 將段落、標籤、輸入框等內容文字放大 1.125 倍 */
+            body p, body span, body label, body input, body textarea, body select, body button, body li, body a {
+                font-size: 1.125em !important;
+            }
+            /* 標題（h1～h6）還原預設大小 */
+            h1, h2, h3, h4, h5, h6 {
+                font-size: revert !important;
+            }
+            /* 響應式設計：小螢幕下可進一步調整（此處示範縮減邊距） */
             @media only screen and (max-width: 768px) {
-                /* 例如：縮減邊距、調整容器寬度等 */
                 .css-18e3th9 {
                     padding-left: 1rem;
                     padding-right: 1rem;
