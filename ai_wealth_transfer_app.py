@@ -202,7 +202,7 @@ class EstateTaxUI:
             /* 副標題色彩 */
             h2, h3 { color: #4a90e2; }
             /* 分隔線 */
-            hr { border: 0; height: 1px; background: #cccccc; }
+            hr { border: 0; height: 1px; background: #cccccc; margin: 20px 0; }
             /* 自訂按鈕 */
             button {
                 background-color: #4a90e2;
@@ -293,9 +293,10 @@ class EstateTaxUI:
         3. 分散配置：透過合理資產配置降低稅負。
         """)
 
-        # 授權區：直接顯示醒目的標題與內容
+        # 在授權區上方加入分隔線，並直接顯示醒目的授權區標題（置左）
+        st.markdown("<hr>", unsafe_allow_html=True)
         st.markdown(
-            "<h2 style='font-size:1.5em; color:#d9534f; text-align:center;'>【授權用戶專區】模擬試算與效益評估 (僅限授權使用者)</h2>",
+            "<h2 style='font-size:1.5em; color:#d9534f; text-align:left;'>模擬試算與效益評估【授權用戶專區】</h2>",
             unsafe_allow_html=True
         )
         if not st.session_state.get("authenticated", False):
