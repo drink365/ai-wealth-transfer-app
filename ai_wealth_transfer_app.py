@@ -187,6 +187,23 @@ class EstateTaxUI:
     def render_ui(self):
         """渲染 Streamlit 介面"""
         st.set_page_config(page_title="遺產稅試算＋建議", layout="wide")
+        # 注入 CSS 樣式：將所有內容文字放大一號，但保留標題大小不變
+        st.markdown(
+            """
+            <style>
+            /* 將一般段落、標籤、輸入框等文字放大一號 */
+            body, p, span, div, label, input, textarea, select, button {
+                font-size: 1.125em !important;
+            }
+            /* 標題維持原樣 */
+            h1, .main-header {
+                font-size: inherit !important;
+            }
+            </style>
+            """,
+            unsafe_allow_html=True
+        )
+
         st.markdown("<h1 class='main-header'>遺產稅試算＋建議</h1>", unsafe_allow_html=True)
         st.selectbox("選擇適用地區", ["台灣（2025年起）"], index=0)
 
