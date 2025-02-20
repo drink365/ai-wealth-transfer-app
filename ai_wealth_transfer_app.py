@@ -246,7 +246,7 @@ class EstateTaxUI:
             st.error(f"計算遺產稅時發生錯誤：{e}")
             return
 
-        st.markdown("<h3>預估遺產稅：{0:,.0f} 萬元</h3>".format(tax_due), unsafe_allow_html=True)
+        st.markdown("## 預估遺產稅：{0:,.0f} 萬元".format(tax_due), unsafe_allow_html=True)
 
         col1, col2, col3 = st.columns(3)
         with col1:
