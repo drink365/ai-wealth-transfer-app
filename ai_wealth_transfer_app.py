@@ -187,7 +187,7 @@ class EstateTaxUI:
     def render_ui(self):
         """渲染 Streamlit 介面"""
         st.set_page_config(page_title="AI秒算遺產稅", layout="wide")
-        # 注入 CSS：美化背景、標題、按鈕與其他元素
+        # 注入 CSS：美化背景、標題、按鈕與其他元素，同時調整 number_input 標籤文字大小
         st.markdown(
             """
             <style>
@@ -218,7 +218,7 @@ class EstateTaxUI:
                 height: 1px;
                 background: #cccccc;
             }
-            /* 自訂按鈕樣式（若有用到按鈕可參考） */
+            /* 自訂按鈕樣式 */
             button {
                 background-color: #4a90e2;
                 color: #ffffff;
@@ -231,6 +231,10 @@ class EstateTaxUI:
                 background-color: #ffffff;
                 border: 1px solid #dddddd;
             }
+            /* 針對 number_input 標籤的文字大小設定 */
+            div.stNumberInput label {
+                font-size: 1.125em !important;
+            }
             </style>
             """,
             unsafe_allow_html=True
@@ -238,7 +242,6 @@ class EstateTaxUI:
 
         # 主標題文字改為 "AI秒算遺產稅"
         st.markdown("<h1 class='main-header'>AI秒算遺產稅</h1>", unsafe_allow_html=True)
-
         st.markdown("<br>", unsafe_allow_html=True)
         st.selectbox("選擇適用地區", ["台灣（2025年起）"], index=0)
 
