@@ -101,16 +101,16 @@ class EstateTaxSimulator:
         return {
             "沒有規劃": {
                 "總資產": int(total_assets),
-                "預估遺產稅": int(tax_no_insurance),
+                "遺產稅": int(tax_no_insurance),
                 "家人總共取得": int(net_no_insurance)
             },
             "有規劃保單": {
-                "預估遺產稅": int(tax_new),
+                "遺產稅": int(tax_new),
                 "家人總共取得": int(net_not_taxed),
                 "規劃效果": int(effect_not_taxed)
             },
             "有規劃保單 (被實質課稅)": {
-                "預估遺產稅": int(tax_effective),
+                "遺產稅": int(tax_effective),
                 "家人總共取得": int(net_taxed),
                 "規劃效果": int(effect_taxed)
             }
@@ -133,12 +133,12 @@ class EstateTaxSimulator:
         return {
             "沒有規劃": {
                 "總資產": int(total_assets),
-                "預估遺產稅": int(tax_original),
+                "遺產稅": int(tax_original),
                 "家人總共取得": int(net_original)
             },
             "提前贈與後": {
                 "總資產": int(simulated_total_assets),
-                "預估遺產稅": int(tax_sim),
+                "遺產稅": int(tax_sim),
                 "總贈與金額": int(total_gift),
                 "家人總共取得": int(net_after),
                 "贈與年數": years
@@ -240,7 +240,7 @@ class EstateTaxUI:
             return
 
         # 將預估遺產稅那一行加大1號（使用 inline CSS 設定 font-size ）
-        st.markdown("<h3 style='font-size:1.125em;'>預估遺產稅：{0:,.0f} 萬元</h3>".format(tax_due), unsafe_allow_html=True)
+        st.markdown("<h3 style='font-size:1.15em;'>預估遺產稅：{0:,.0f} 萬元</h3>".format(tax_due), unsafe_allow_html=True)
 
         col1, col2, col3 = st.columns(3)
         with col1:
