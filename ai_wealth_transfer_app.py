@@ -293,8 +293,12 @@ class EstateTaxUI:
         3. 分散配置：透過合理資產配置降低稅負。
         """)
 
-        # 使用 expander 隱藏進階模擬試算區，讓使用者可自行展開
-        with st.expander("模擬試算與效益評估 (僅限授權使用者)"):
+        # 使用 expander 隱藏進階模擬試算區，並以更醒目的標題吸引用戶
+        with st.expander(""):
+            st.markdown(
+                "<h2 style='font-size:1.5em; color:#d9534f; text-align:center;'>【授權用戶專區】模擬試算與效益評估 (僅限授權使用者)</h2>",
+                unsafe_allow_html=True
+            )
             login_container = st.empty()
             if not st.session_state.get("authenticated", False):
                 with login_container.form("login_form"):
