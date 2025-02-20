@@ -204,13 +204,6 @@ class EstateTaxUI:
                 font-size: 2em !important;
                 text-align: center;
             }
-            /* 響應式設計：小螢幕下可進一步調整（此處示範縮減邊距） */
-            @media only screen and (max-width: 768px) {
-                .css-18e3th9 {
-                    padding-left: 1rem;
-                    padding-right: 1rem;
-                }
-            }
             </style>
             """,
             unsafe_allow_html=True
@@ -246,7 +239,8 @@ class EstateTaxUI:
             st.error(f"計算遺產稅時發生錯誤：{e}")
             return
 
-        st.markdown("<h3>預估遺產稅：{0:,.0f} 萬元</h3>".format(tax_due), unsafe_allow_html=True)
+        # 將預估遺產稅那一行加大1號（使用 inline CSS 設定 font-size ）
+        st.markdown("<h3 style='font-size:1.125em;'>預估遺產稅：{0:,.0f} 萬元</h3>".format(tax_due), unsafe_allow_html=True)
 
         col1, col2, col3 = st.columns(3)
         with col1:
