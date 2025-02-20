@@ -214,11 +214,11 @@ class EstateTaxUI:
         st.selectbox("選擇適用地區", ["台灣（2025年起）"], index=0)
 
         with st.container():
-            st.markdown("### 請輸入資產及家庭資訊")
+            st.markdown("## 請輸入資產及家庭資訊")
             total_assets_input = st.number_input("總資產（萬）", min_value=1000, max_value=100000,
                                                  value=5000, step=100, help="請輸入您的總資產（單位：萬）")
             st.markdown("---")
-            st.markdown("#### 請輸入家庭成員數")
+            st.markdown("### 請輸入家庭成員數")
             has_spouse = st.checkbox("是否有配偶（扣除額 553 萬）", value=False)
             adult_children_input = st.number_input("直系血親卑親屬數（每人 56 萬）", min_value=0, max_value=10,
                                                    value=0, help="請輸入直系血親或卑親屬人數")
