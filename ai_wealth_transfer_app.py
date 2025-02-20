@@ -44,12 +44,12 @@ class EstateTaxCalculator:
         """計算總扣除額"""
         spouse_deduction = self.constants.SPOUSE_DEDUCTION_VALUE if spouse else 0
         total_deductions = (
-                spouse_deduction +
-                self.constants.FUNERAL_EXPENSE +
-                (disabled_people * self.constants.DISABLED_DEDUCTION) +
-                (adult_children * self.constants.ADULT_CHILD_DEDUCTION) +
-                (other_dependents * self.constants.OTHER_DEPENDENTS_DEDUCTION) +
-                (parents * self.constants.PARENTS_DEDUCTION)
+            spouse_deduction +
+            self.constants.FUNERAL_EXPENSE +
+            (disabled_people * self.constants.DISABLED_DEDUCTION) +
+            (adult_children * self.constants.ADULT_CHILD_DEDUCTION) +
+            (other_dependents * self.constants.OTHER_DEPENDENTS_DEDUCTION) +
+            (parents * self.constants.PARENTS_DEDUCTION)
         )
         return total_deductions
 
@@ -187,13 +187,19 @@ class EstateTaxUI:
     def render_ui(self):
         """渲染 Streamlit 介面"""
         st.set_page_config(page_title="遺產稅試算＋建議", layout="wide")
-        # 注入 CSS 樣式：將所有內容文字放大一號，但保留標題大小不變
+        # 注入 CSS 樣式：採用媒體查詢響應式調整
         st.markdown(
             """
             <style>
-            /* 將一般段落、標籤、輸入框等文字放大一號 */
+            /* 大螢幕：一般文字放大 1.125 倍 */
             body, p, span, div, label, input, textarea, select, button {
                 font-size: 1.125em !important;
+            }
+            /* 小螢幕（寬度低於 768px）：調整回 1em */
+            @media only screen and (max-width: 768px) {
+                body, p, span, div, label, input, textarea, select, button {
+                    font-size: 1em !important;
+                }
             }
             /* 標題維持原樣 */
             h1, .main-header {
