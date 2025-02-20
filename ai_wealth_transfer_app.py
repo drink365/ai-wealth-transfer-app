@@ -240,7 +240,7 @@ class EstateTaxUI:
             return
 
         # 將預估遺產稅那一行加大1號（使用 inline CSS 設定 font-size ）
-        st.markdown("<h3 style='font-size:1.15em;'>預估遺產稅：{0:,.0f} 萬元</h3>".format(tax_due), unsafe_allow_html=True)
+        st.markdown("## 預估遺產稅：{0:,.0f} 萬元".format(tax_due), unsafe_allow_html=True)
 
         col1, col2, col3 = st.columns(3)
         with col1:
