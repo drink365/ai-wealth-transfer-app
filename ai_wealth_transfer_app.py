@@ -238,6 +238,7 @@ class EstateTaxUI:
 
         # 主標題文字改為 "AI秒算遺產稅"
         st.markdown("<h1 class='main-header'>AI秒算遺產稅</h1>", unsafe_allow_html=True)
+        
         st.selectbox("選擇適用地區", ["台灣（2025年起）"], index=0)
 
         with st.container():
