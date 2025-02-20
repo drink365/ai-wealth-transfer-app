@@ -485,7 +485,7 @@ class EstateTaxUI:
         # 行銷資訊（所有人皆可檢視）
         # ===============================
         st.markdown("---")
-        st.markdown("### 想了解更多？")
+        st.markdown("## 想了解更多？")
         st.markdown("歡迎前往 **永傳家族辦公室**，我們提供專業的家族傳承與財富規劃服務。")
         st.markdown("[點此前往官網](https://www.gracefo.com)", unsafe_allow_html=True)
 
