@@ -293,195 +293,192 @@ class EstateTaxUI:
         3. 分散配置：透過合理資產配置降低稅負。
         """)
 
-        # 使用 expander 隱藏進階模擬試算區，並以更醒目的標題吸引用戶
-        with st.expander(""):
-            st.markdown(
-                "<h2 style='font-size:1.5em; color:#d9534f; text-align:center;'>【授權用戶專區】模擬試算與效益評估 (僅限授權使用者)</h2>",
-                unsafe_allow_html=True
+        # 授權區：直接顯示醒目的標題與內容
+        st.markdown(
+            "<h2 style='font-size:1.5em; color:#d9534f; text-align:center;'>【授權用戶專區】模擬試算與效益評估 (僅限授權使用者)</h2>",
+            unsafe_allow_html=True
+        )
+        if not st.session_state.get("authenticated", False):
+            with st.form("login_form"):
+                st.markdown("請先登入以檢視完整內容。")
+                login_username = st.text_input("帳號", key="login_form_username")
+                login_password = st.text_input("密碼", type="password", key="login_form_password")
+                submitted = st.form_submit_button("登入")
+                if submitted:
+                    valid, user_name = check_credentials(login_username, login_password)
+                    if valid:
+                        st.session_state.authenticated = True
+                        st.session_state.user_name = user_name
+                        st.success(f"登入成功！歡迎 {user_name}")
+                        time.sleep(1)
+                    else:
+                        st.session_state.authenticated = False
+
+        if st.session_state.get("authenticated", False):
+            st.markdown("請檢視下方的模擬試算與效益評估結果")
+            CASE_TOTAL_ASSETS = total_assets_input
+            CASE_SPOUSE = has_spouse
+            CASE_ADULT_CHILDREN = adult_children_input
+            CASE_PARENTS = parents_input
+            CASE_DISABLED = disabled_people_input
+            CASE_OTHER = other_dependents_input
+
+            # 保費預設：向上取整至十萬位（不得超過總資產）
+            default_premium = int(math.ceil(tax_due / 10) * 10)
+            if default_premium > CASE_TOTAL_ASSETS:
+                default_premium = CASE_TOTAL_ASSETS
+            premium_val = default_premium
+
+            # 理賠金預設：保費的 1.5 倍
+            default_claim = int(premium_val * 1.5)
+
+            # 贈與金額預設：若剩餘資產大於等於 244 萬，則預設為 244 萬；否則為 0
+            remaining = CASE_TOTAL_ASSETS - premium_val
+            default_gift = 244 if remaining >= 244 else 0
+
+            premium_case = st.number_input("購買保險保費（萬）",
+                                           min_value=0,
+                                           max_value=CASE_TOTAL_ASSETS,
+                                           value=premium_val,
+                                           step=100,
+                                           key="premium_case",
+                                           format="%d")
+            claim_case = st.number_input("保險理賠金（萬）",
+                                         min_value=0,
+                                         max_value=100000,
+                                         value=default_claim,
+                                         step=100,
+                                         key="claim_case",
+                                         format="%d")
+            gift_case = st.number_input("提前贈與金額（萬）",
+                                        min_value=0,
+                                        max_value=CASE_TOTAL_ASSETS - premium_case,
+                                        value=min(default_gift, CASE_TOTAL_ASSETS - premium_case),
+                                        step=100,
+                                        key="case_gift",
+                                        format="%d")
+
+            # 輸入檢查：避免超過總資產的錯誤
+            if premium_case > CASE_TOTAL_ASSETS:
+                st.error("錯誤：保費不得高於總資產！")
+            if gift_case > CASE_TOTAL_ASSETS - premium_case:
+                st.error("錯誤：提前贈與金額不得高於【總資產】-【保費】！")
+
+            _, tax_case_no_plan, _ = self.calculator.calculate_estate_tax(
+                CASE_TOTAL_ASSETS,
+                CASE_SPOUSE,
+                CASE_ADULT_CHILDREN,
+                CASE_OTHER,
+                CASE_DISABLED,
+                CASE_PARENTS
             )
-            login_container = st.empty()
-            if not st.session_state.get("authenticated", False):
-                with login_container.form("login_form"):
-                    st.markdown("請先登入以檢視此區域內容。")
-                    login_username = st.text_input("帳號", key="login_form_username")
-                    login_password = st.text_input("密碼", type="password", key="login_form_password")
-                    submitted = st.form_submit_button("登入")
-                    if submitted:
-                        valid, user_name = check_credentials(login_username, login_password)
-                        if valid:
-                            st.session_state.authenticated = True
-                            st.session_state.user_name = user_name
-                            st.success(f"登入成功！歡迎 {user_name}")
-                            time.sleep(1)
-                            login_container.empty()
-                        else:
-                            st.session_state.authenticated = False
+            net_case_no_plan = CASE_TOTAL_ASSETS - tax_case_no_plan
 
-            if st.session_state.get("authenticated", False):
-                st.markdown("請檢視下方的模擬試算與效益評估結果")
-                CASE_TOTAL_ASSETS = total_assets_input
-                CASE_SPOUSE = has_spouse
-                CASE_ADULT_CHILDREN = adult_children_input
-                CASE_PARENTS = parents_input
-                CASE_DISABLED = disabled_people_input
-                CASE_OTHER = other_dependents_input
+            effective_case_gift = CASE_TOTAL_ASSETS - gift_case
+            _, tax_case_gift, _ = self.calculator.calculate_estate_tax(
+                effective_case_gift,
+                CASE_SPOUSE,
+                CASE_ADULT_CHILDREN,
+                CASE_OTHER,
+                CASE_DISABLED,
+                CASE_PARENTS
+            )
+            net_case_gift = effective_case_gift - tax_case_gift + gift_case
 
-                # 保費預設：向上取整至十萬位（不得超過總資產）
-                default_premium = int(math.ceil(tax_due / 10) * 10)
-                if default_premium > CASE_TOTAL_ASSETS:
-                    default_premium = CASE_TOTAL_ASSETS
-                premium_val = default_premium
+            effective_case_insurance = CASE_TOTAL_ASSETS - premium_case
+            _, tax_case_insurance, _ = self.calculator.calculate_estate_tax(
+                effective_case_insurance,
+                CASE_SPOUSE,
+                CASE_ADULT_CHILDREN,
+                CASE_OTHER,
+                CASE_DISABLED,
+                CASE_PARENTS
+            )
+            net_case_insurance = effective_case_insurance - tax_case_insurance + claim_case
 
-                # 理賠金預設：保費的 1.5 倍
-                default_claim = int(premium_val * 1.5)
+            effective_case_combo_not_tax = CASE_TOTAL_ASSETS - gift_case - premium_case
+            _, tax_case_combo_not_tax, _ = self.calculator.calculate_estate_tax(
+                effective_case_combo_not_tax,
+                CASE_SPOUSE,
+                CASE_ADULT_CHILDREN,
+                CASE_OTHER,
+                CASE_DISABLED,
+                CASE_PARENTS
+            )
+            net_case_combo_not_tax = effective_case_combo_not_tax - tax_case_combo_not_tax + claim_case + gift_case
 
-                # 贈與金額預設：若剩餘資產大於等於 244 萬，則預設為 244 萬；否則為 0
-                remaining = CASE_TOTAL_ASSETS - premium_val
-                default_gift = 244 if remaining >= 244 else 0
+            effective_case_combo_tax = CASE_TOTAL_ASSETS - gift_case - premium_case + claim_case
+            _, tax_case_combo_tax, _ = self.calculator.calculate_estate_tax(
+                effective_case_combo_tax,
+                CASE_SPOUSE,
+                CASE_ADULT_CHILDREN,
+                CASE_OTHER,
+                CASE_DISABLED,
+                CASE_PARENTS
+            )
+            net_case_combo_tax = effective_case_combo_tax - tax_case_combo_tax + gift_case
 
-                premium_case = st.number_input("購買保險保費（萬）",
-                                               min_value=0,
-                                               max_value=CASE_TOTAL_ASSETS,
-                                               value=premium_val,
-                                               step=100,
-                                               key="premium_case",
-                                               format="%d")
-                claim_case = st.number_input("保險理賠金（萬）",
-                                             min_value=0,
-                                             max_value=100000,
-                                             value=default_claim,
-                                             step=100,
-                                             key="claim_case",
-                                             format="%d")
-                gift_case = st.number_input("提前贈與金額（萬）",
-                                            min_value=0,
-                                            max_value=CASE_TOTAL_ASSETS - premium_case,
-                                            value=min(default_gift, CASE_TOTAL_ASSETS - premium_case),
-                                            step=100,
-                                            key="case_gift",
-                                            format="%d")
+            case_data = {
+                "規劃策略": [
+                    "沒有規劃",
+                    "提前贈與",
+                    "購買保險",
+                    "提前贈與＋購買保險",
+                    "提前贈與＋購買保險（被實質課稅）"
+                ],
+                "遺產稅（萬）": [
+                    int(tax_case_no_plan),
+                    int(tax_case_gift),
+                    int(tax_case_insurance),
+                    int(tax_case_combo_not_tax),
+                    int(tax_case_combo_tax)
+                ],
+                "家人總共取得（萬）": [
+                    int(net_case_no_plan),
+                    int(net_case_gift),
+                    int(net_case_insurance),
+                    int(net_case_combo_not_tax),
+                    int(net_case_combo_tax)
+                ]
+            }
+            df_case_results = pd.DataFrame(case_data)
+            baseline_value = df_case_results.loc[df_case_results["規劃策略"] == "沒有規劃", "家人總共取得（萬）"].iloc[0]
+            df_case_results["規劃效益"] = df_case_results["家人總共取得（萬）"] - baseline_value
 
-                # 輸入檢查：避免超過總資產的錯誤
-                if premium_case > CASE_TOTAL_ASSETS:
-                    st.error("錯誤：保費不得高於總資產！")
-                if gift_case > CASE_TOTAL_ASSETS - premium_case:
-                    st.error("錯誤：提前贈與金額不得高於【總資產】-【保費】！")
+            st.markdown("### 案例模擬結果")
+            family_status = ""
+            if CASE_SPOUSE:
+                family_status += "配偶, "
+            family_status += f"子女{CASE_ADULT_CHILDREN}人, 父母{CASE_PARENTS}人, 重度身心障礙者{CASE_DISABLED}人, 其他撫養{CASE_OTHER}人"
+            st.markdown(f"**總資產：{int(CASE_TOTAL_ASSETS):,d} 萬**  |  **家庭狀況：{family_status}**")
+            st.table(df_case_results)
 
-                _, tax_case_no_plan, _ = self.calculator.calculate_estate_tax(
-                    CASE_TOTAL_ASSETS,
-                    CASE_SPOUSE,
-                    CASE_ADULT_CHILDREN,
-                    CASE_OTHER,
-                    CASE_DISABLED,
-                    CASE_PARENTS
-                )
-                net_case_no_plan = CASE_TOTAL_ASSETS - tax_case_no_plan
-
-                effective_case_gift = CASE_TOTAL_ASSETS - gift_case
-                _, tax_case_gift, _ = self.calculator.calculate_estate_tax(
-                    effective_case_gift,
-                    CASE_SPOUSE,
-                    CASE_ADULT_CHILDREN,
-                    CASE_OTHER,
-                    CASE_DISABLED,
-                    CASE_PARENTS
-                )
-                net_case_gift = effective_case_gift - tax_case_gift + gift_case
-
-                effective_case_insurance = CASE_TOTAL_ASSETS - premium_case
-                _, tax_case_insurance, _ = self.calculator.calculate_estate_tax(
-                    effective_case_insurance,
-                    CASE_SPOUSE,
-                    CASE_ADULT_CHILDREN,
-                    CASE_OTHER,
-                    CASE_DISABLED,
-                    CASE_PARENTS
-                )
-                net_case_insurance = effective_case_insurance - tax_case_insurance + claim_case
-
-                effective_case_combo_not_tax = CASE_TOTAL_ASSETS - gift_case - premium_case
-                _, tax_case_combo_not_tax, _ = self.calculator.calculate_estate_tax(
-                    effective_case_combo_not_tax,
-                    CASE_SPOUSE,
-                    CASE_ADULT_CHILDREN,
-                    CASE_OTHER,
-                    CASE_DISABLED,
-                    CASE_PARENTS
-                )
-                net_case_combo_not_tax = effective_case_combo_not_tax - tax_case_combo_not_tax + claim_case + gift_case
-
-                effective_case_combo_tax = CASE_TOTAL_ASSETS - gift_case - premium_case + claim_case
-                _, tax_case_combo_tax, _ = self.calculator.calculate_estate_tax(
-                    effective_case_combo_tax,
-                    CASE_SPOUSE,
-                    CASE_ADULT_CHILDREN,
-                    CASE_OTHER,
-                    CASE_DISABLED,
-                    CASE_PARENTS
-                )
-                net_case_combo_tax = effective_case_combo_tax - tax_case_combo_tax + gift_case
-
-                case_data = {
-                    "規劃策略": [
-                        "沒有規劃",
-                        "提前贈與",
-                        "購買保險",
-                        "提前贈與＋購買保險",
-                        "提前贈與＋購買保險（被實質課稅）"
-                    ],
-                    "遺產稅（萬）": [
-                        int(tax_case_no_plan),
-                        int(tax_case_gift),
-                        int(tax_case_insurance),
-                        int(tax_case_combo_not_tax),
-                        int(tax_case_combo_tax)
-                    ],
-                    "家人總共取得（萬）": [
-                        int(net_case_no_plan),
-                        int(net_case_gift),
-                        int(net_case_insurance),
-                        int(net_case_combo_not_tax),
-                        int(net_case_combo_tax)
-                    ]
-                }
-                df_case_results = pd.DataFrame(case_data)
-                baseline_value = df_case_results.loc[df_case_results["規劃策略"] == "沒有規劃", "家人總共取得（萬）"].iloc[0]
-                df_case_results["規劃效益"] = df_case_results["家人總共取得（萬）"] - baseline_value
-
-                st.markdown("### 案例模擬結果")
-                family_status = ""
-                if CASE_SPOUSE:
-                    family_status += "配偶, "
-                family_status += f"子女{CASE_ADULT_CHILDREN}人, 父母{CASE_PARENTS}人, 重度身心障礙者{CASE_DISABLED}人, 其他撫養{CASE_OTHER}人"
-                st.markdown(f"**總資產：{int(CASE_TOTAL_ASSETS):,d} 萬**  |  **家庭狀況：{family_status}**")
-                st.table(df_case_results)
-
-                # 繪製條狀圖比較不同策略效果
-                fig_bar_case = px.bar(
-                    df_case_results,
-                    x="規劃策略",
-                    y="家人總共取得（萬）",
-                    title="不同規劃策略下家人總共取得金額比較（案例）",
-                    text="家人總共取得（萬）"
-                )
-                fig_bar_case.update_traces(texttemplate='%{text:.0f}', textposition='outside')
-                baseline_case = df_case_results.loc[df_case_results["規劃策略"] == "沒有規劃", "家人總共取得（萬）"].iloc[0]
-                for idx, row in df_case_results.iterrows():
-                    if row["規劃策略"] != "沒有規劃":
-                        diff = row["家人總共取得（萬）"] - baseline_case
-                        diff_text = f"+{int(diff)}" if diff >= 0 else f"{int(diff)}"
-                        fig_bar_case.add_annotation(
-                            x=row["規劃策略"],
-                            y=row["家人總共取得（萬）"],
-                            text=diff_text,
-                            showarrow=False,
-                            font=dict(color="yellow", size=14),
-                            yshift=-50
-                        )
-                max_value = df_case_results["家人總共取得（萬）"].max()
-                dtick = max_value / 10
-                fig_bar_case.update_layout(margin=dict(t=100), yaxis_range=[0, max_value + dtick], autosize=True)
-                st.plotly_chart(fig_bar_case, use_container_width=True)
+            # 繪製條狀圖比較不同策略效果
+            fig_bar_case = px.bar(
+                df_case_results,
+                x="規劃策略",
+                y="家人總共取得（萬）",
+                title="不同規劃策略下家人總共取得金額比較（案例）",
+                text="家人總共取得（萬）"
+            )
+            fig_bar_case.update_traces(texttemplate='%{text:.0f}', textposition='outside')
+            baseline_case = df_case_results.loc[df_case_results["規劃策略"] == "沒有規劃", "家人總共取得（萬）"].iloc[0]
+            for idx, row in df_case_results.iterrows():
+                if row["規劃策略"] != "沒有規劃":
+                    diff = row["家人總共取得（萬）"] - baseline_case
+                    diff_text = f"+{int(diff)}" if diff >= 0 else f"{int(diff)}"
+                    fig_bar_case.add_annotation(
+                        x=row["規劃策略"],
+                        y=row["家人總共取得（萬）"],
+                        text=diff_text,
+                        showarrow=False,
+                        font=dict(color="yellow", size=14),
+                        yshift=-50
+                    )
+            max_value = df_case_results["家人總共取得（萬）"].max()
+            dtick = max_value / 10
+            fig_bar_case.update_layout(margin=dict(t=100), yaxis_range=[0, max_value + dtick], autosize=True)
+            st.plotly_chart(fig_bar_case, use_container_width=True)
 
         st.markdown("---")
         st.markdown("### 想了解更多？")
