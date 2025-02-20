@@ -239,7 +239,6 @@ class EstateTaxUI:
             st.error(f"計算遺產稅時發生錯誤：{e}")
             return
 
-        # 將預估遺產稅那一行加大1號（使用 inline CSS 設定 font-size ）
         st.markdown("## 預估遺產稅：{0:,.0f} 萬元".format(tax_due), unsafe_allow_html=True)
 
         col1, col2, col3 = st.columns(3)
