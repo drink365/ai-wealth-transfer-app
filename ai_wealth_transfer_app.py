@@ -7,13 +7,14 @@ from datetime import datetime
 import time
 from dataclasses import dataclass, field
 
+
 # ===============================
 # 1. 常數與設定
 # ===============================
 @dataclass
 class TaxConstants:
     """遺產稅相關常數"""
-    EXEMPT_AMOUNT: float = 1333   # 免稅額
+    EXEMPT_AMOUNT: float = 1333  # 免稅額
     FUNERAL_EXPENSE: float = 138  # 喪葬費扣除額
     SPOUSE_DEDUCTION_VALUE: float = 553  # 配偶扣除額
     ADULT_CHILD_DEDUCTION: float = 56  # 每位子女扣除額
@@ -27,6 +28,7 @@ class TaxConstants:
             (float('inf'), 0.2)
         ]
     )
+
 
 # ===============================
 # 2. 稅務計算邏輯
@@ -68,6 +70,7 @@ class EstateTaxCalculator:
                 previous_bracket = bracket
         return taxable_amount, round(tax_due, 0), deductions
 
+
 # ===============================
 # 3. 模擬試算邏輯
 # ===============================
@@ -82,7 +85,7 @@ class EstateTaxSimulator:
                                     premium_ratio: float, premium: float) -> Dict[str, Any]:
         """模擬保險策略"""
         _, tax_no_insurance, _ = self.calculator.calculate_estate_tax(total_assets, spouse, adult_children,
-                                                                       other_dependents, disabled_people, parents)
+                                                                     other_dependents, disabled_people, parents)
         net_no_insurance = total_assets - tax_no_insurance
         claim_amount = round(premium * premium_ratio, 0)
         new_total_assets = total_assets - premium
@@ -98,16 +101,16 @@ class EstateTaxSimulator:
         return {
             "沒有規劃": {
                 "總資產": int(total_assets),
-                "遺產稅": int(tax_no_insurance),
+                "預估遺產稅": int(tax_no_insurance),
                 "家人總共取得": int(net_no_insurance)
             },
             "有規劃保單": {
-                "遺產稅": int(tax_new),
+                "預估遺產稅": int(tax_new),
                 "家人總共取得": int(net_not_taxed),
                 "規劃效果": int(effect_not_taxed)
             },
             "有規劃保單 (被實質課稅)": {
-                "遺產稅": int(tax_effective),
+                "預估遺產稅": int(tax_effective),
                 "家人總共取得": int(net_taxed),
                 "規劃效果": int(effect_taxed)
             }
@@ -130,12 +133,12 @@ class EstateTaxSimulator:
         return {
             "沒有規劃": {
                 "總資產": int(total_assets),
-                "遺產稅": int(tax_original),
+                "預估遺產稅": int(tax_original),
                 "家人總共取得": int(net_original)
             },
             "提前贈與後": {
                 "總資產": int(simulated_total_assets),
-                "遺產稅": int(tax_sim),
+                "預估遺產稅": int(tax_sim),
                 "總贈與金額": int(total_gift),
                 "家人總共取得": int(net_after),
                 "贈與年數": years
@@ -144,6 +147,7 @@ class EstateTaxSimulator:
                 "較沒有規劃增加": int(effect)
             }
         }
+
 
 # ===============================
 # 4. 登入驗證（保護區用）
@@ -169,6 +173,7 @@ def check_credentials(input_username: str, input_password: str) -> (bool, str):
         st.error("查無此使用者")
         return False, ""
 
+
 # ===============================
 # 5. Streamlit 介面
 # ===============================
@@ -179,67 +184,53 @@ class EstateTaxUI:
         self.calculator = calculator
         self.simulator = simulator
 
-    def inject_css(self):
-        """注入自訂 CSS 樣式"""
+    def render_ui(self):
+        """渲染 Streamlit 介面"""
+        st.set_page_config(page_title="AI秒算遺產稅", layout="wide")
+        # 注入 CSS：針對內容文字加大1號，標題則還原預設並對主標題做特殊設定（2em 且置中）
         st.markdown(
             """
             <style>
-            /* 整體背景與文字設定 */
-            body { background-color: #f9f9f9; }
+            /* 將段落、標籤、輸入框等內容文字放大 1.125 倍 */
             body p, body span, body label, body input, body textarea, body select, body button, body li, body a {
                 font-size: 1.125em !important;
-                color: #333333;
             }
-            /* 主標題 */
+            /* 標題（h1～h6）還原預設大小 */
+            h1, h2, h3, h4, h5, h6 {
+                font-size: revert !important;
+            }
+            /* 主標題特殊樣式：2em 且置中 */
             h1.main-header {
                 font-size: 2em !important;
                 text-align: center;
-                color: #ffffff;
-                background-color: #4a90e2;
-                padding: 10px;
-                border-radius: 5px;
             }
-            /* 副標題色彩 */
-            h2, h3 { color: #4a90e2; }
-            /* 分隔線 */
-            hr { border: 0; height: 1px; background: #cccccc; margin: 20px 0; }
-            /* 自訂按鈕 */
-            button {
-                background-color: #4a90e2;
-                color: #ffffff;
-                border: none;
-                padding: 10px;
-                border-radius: 5px;
+            /* 響應式設計：小螢幕下可進一步調整（此處示範縮減邊距） */
+            @media only screen and (max-width: 768px) {
+                .css-18e3th9 {
+                    padding-left: 1rem;
+                    padding-right: 1rem;
+                }
             }
-            /* 調整 number_input 標籤文字 */
-            div.stNumberInput label { font-size: 1.125em !important; }
             </style>
             """,
             unsafe_allow_html=True
         )
 
-    def render_ui(self):
-        """渲染 Streamlit 介面"""
-        st.set_page_config(page_title="AI秒算遺產稅", layout="wide")
-        self.inject_css()
-
+        # 主標題文字改為 "AI秒算遺產稅"
         st.markdown("<h1 class='main-header'>AI秒算遺產稅</h1>", unsafe_allow_html=True)
-        st.markdown("<br>", unsafe_allow_html=True)
         st.selectbox("選擇適用地區", ["台灣（2025年起）"], index=0)
 
         with st.container():
-            st.markdown("## 請輸入資產及家庭資訊")
-            total_assets_input = st.number_input("總資產（單位：萬）", min_value=1000, max_value=100000,
-                                                 value=5000, step=100,
-                                                 help="請輸入您的總資產（單位：萬）")
+            st.markdown("### 請輸入資產及家庭資訊")
+            total_assets_input = st.number_input("總資產（萬）", min_value=1000, max_value=100000,
+                                                 value=5000, step=100, help="請輸入您的總資產（單位：萬）")
             st.markdown("---")
-            st.markdown("### 請輸入家庭成員數")
+            st.markdown("#### 請輸入家庭成員數")
             has_spouse = st.checkbox("是否有配偶（扣除額 553 萬）", value=False)
             adult_children_input = st.number_input("直系血親卑親屬數（每人 56 萬）", min_value=0, max_value=10,
                                                    value=0, help="請輸入直系血親或卑親屬人數")
             parents_input = st.number_input("父母數（每人 138 萬，最多 2 人）", min_value=0, max_value=2,
                                             value=0, help="請輸入父母人數")
-            # 動態計算最大可輸入重度身心障礙者數量
             max_disabled = (1 if has_spouse else 0) + adult_children_input + parents_input
             disabled_people_input = st.number_input("重度以上身心障礙者數（每人 693 萬）", min_value=0, max_value=max_disabled,
                                                     value=0, help="請輸入重度以上身心障礙者人數")
@@ -255,7 +246,8 @@ class EstateTaxUI:
             st.error(f"計算遺產稅時發生錯誤：{e}")
             return
 
-        st.markdown(f"## 預估遺產稅：{tax_due:,.0f} 萬元")
+        st.markdown("<h3>預估遺產稅：{0:,.0f} 萬元</h3>".format(tax_due), unsafe_allow_html=True)
+
         col1, col2, col3 = st.columns(3)
         with col1:
             st.markdown("**資產概況**")
@@ -293,15 +285,17 @@ class EstateTaxUI:
         3. 分散配置：透過合理資產配置降低稅負。
         """)
 
-        # 在授權區上方加入分隔線，並直接顯示醒目的授權區標題（置左）
-        st.markdown("<hr>", unsafe_allow_html=True)
-        st.markdown(
-            "<h2 style='font-size:1.5em; color:#d9534f; text-align:left;'>模擬試算與效益評估【授權用戶專區】</h2>",
-            unsafe_allow_html=True
-        )
+        # ===============================
+        # 保護區：模擬試算與效益評估（僅限授權使用者）
+        # ===============================
+        st.markdown("---")
+        st.markdown("## 模擬試算與效益評估 (僅限授權使用者)")
+
+        login_container = st.empty()
+
         if not st.session_state.get("authenticated", False):
-            with st.form("login_form"):
-                st.markdown("請先登入以檢視完整內容。")
+            with login_container.form("login_form"):
+                st.markdown("請先登入以檢視此區域內容。")
                 login_username = st.text_input("帳號", key="login_form_username")
                 login_password = st.text_input("密碼", type="password", key="login_form_password")
                 submitted = st.form_submit_button("登入")
@@ -310,13 +304,17 @@ class EstateTaxUI:
                     if valid:
                         st.session_state.authenticated = True
                         st.session_state.user_name = user_name
-                        st.success(f"登入成功！歡迎 {user_name}")
+                        success_container = st.empty()
+                        success_container.success(f"登入成功！歡迎 {user_name}")
                         time.sleep(1)
+                        success_container.empty()
+                        login_container.empty()
                     else:
                         st.session_state.authenticated = False
 
         if st.session_state.get("authenticated", False):
             st.markdown("請檢視下方的模擬試算與效益評估結果")
+
             CASE_TOTAL_ASSETS = total_assets_input
             CASE_SPOUSE = has_spouse
             CASE_ADULT_CHILDREN = adult_children_input
@@ -324,7 +322,7 @@ class EstateTaxUI:
             CASE_DISABLED = disabled_people_input
             CASE_OTHER = other_dependents_input
 
-            # 保費預設：向上取整至十萬位（不得超過總資產）
+            # 保費預設：直接等於預估遺產稅，向上取整到十萬位（例如321萬變為330萬），若超過總資產則取總資產
             default_premium = int(math.ceil(tax_due / 10) * 10)
             if default_premium > CASE_TOTAL_ASSETS:
                 default_premium = CASE_TOTAL_ASSETS
@@ -333,9 +331,12 @@ class EstateTaxUI:
             # 理賠金預設：保費的 1.5 倍
             default_claim = int(premium_val * 1.5)
 
-            # 贈與金額預設：若剩餘資產大於等於 244 萬，則預設為 244 萬；否則為 0
+            # 贈與金額預設：若剩餘資產 (總資產 - 保費) 大於等於 244 萬，則預設為 244 萬；否則為 0
             remaining = CASE_TOTAL_ASSETS - premium_val
-            default_gift = 244 if remaining >= 244 else 0
+            if remaining >= 244:
+                default_gift = 244
+            else:
+                default_gift = 0
 
             premium_case = st.number_input("購買保險保費（萬）",
                                            min_value=0,
@@ -359,7 +360,6 @@ class EstateTaxUI:
                                         key="case_gift",
                                         format="%d")
 
-            # 輸入檢查：避免超過總資產的錯誤
             if premium_case > CASE_TOTAL_ASSETS:
                 st.error("錯誤：保費不得高於總資產！")
             if gift_case > CASE_TOTAL_ASSETS - premium_case:
@@ -454,17 +454,17 @@ class EstateTaxUI:
             st.markdown(f"**總資產：{int(CASE_TOTAL_ASSETS):,d} 萬**  |  **家庭狀況：{family_status}**")
             st.table(df_case_results)
 
-            # 繪製條狀圖比較不同策略效果
+            df_viz_case = df_case_results.copy()
             fig_bar_case = px.bar(
-                df_case_results,
+                df_viz_case,
                 x="規劃策略",
                 y="家人總共取得（萬）",
                 title="不同規劃策略下家人總共取得金額比較（案例）",
                 text="家人總共取得（萬）"
             )
             fig_bar_case.update_traces(texttemplate='%{text:.0f}', textposition='outside')
-            baseline_case = df_case_results.loc[df_case_results["規劃策略"] == "沒有規劃", "家人總共取得（萬）"].iloc[0]
-            for idx, row in df_case_results.iterrows():
+            baseline_case = df_viz_case.loc[df_viz_case["規劃策略"] == "沒有規劃", "家人總共取得（萬）"].iloc[0]
+            for idx, row in df_viz_case.iterrows():
                 if row["規劃策略"] != "沒有規劃":
                     diff = row["家人總共取得（萬）"] - baseline_case
                     diff_text = f"+{int(diff)}" if diff >= 0 else f"{int(diff)}"
@@ -476,15 +476,19 @@ class EstateTaxUI:
                         font=dict(color="yellow", size=14),
                         yshift=-50
                     )
-            max_value = df_case_results["家人總共取得（萬）"].max()
+            max_value = df_viz_case["家人總共取得（萬）"].max()
             dtick = max_value / 10
             fig_bar_case.update_layout(margin=dict(t=100), yaxis_range=[0, max_value + dtick], autosize=True)
             st.plotly_chart(fig_bar_case, use_container_width=True)
 
+        # ===============================
+        # 行銷資訊（所有人皆可檢視）
+        # ===============================
         st.markdown("---")
         st.markdown("### 想了解更多？")
         st.markdown("歡迎前往 **永傳家族辦公室**，我們提供專業的家族傳承與財富規劃服務。")
         st.markdown("[點此前往官網](https://www.gracefo.com)", unsafe_allow_html=True)
+
 
 # ===============================
 # 6. 主程式
