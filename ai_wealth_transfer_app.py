@@ -52,16 +52,16 @@ class EstateTaxCalculator:
         return total_deductions
 
     @st.cache_data
-    def calculate_estate_tax(self, total_assets: float, spouse: bool, adult_children: int,
+    def calculate_estate_tax(_self, total_assets: float, spouse: bool, adult_children: int,
                              other_dependents: int, disabled_people: int, parents: int) -> Tuple[float, float, float]:
         """計算遺產稅"""
-        deductions = self.compute_deductions(spouse, adult_children, other_dependents, disabled_people, parents)
-        if total_assets < self.constants.EXEMPT_AMOUNT + deductions:
+        deductions = _self.compute_deductions(spouse, adult_children, other_dependents, disabled_people, parents)
+        if total_assets < _self.constants.EXEMPT_AMOUNT + deductions:
             return 0, 0, deductions
-        taxable_amount = max(0, total_assets - self.constants.EXEMPT_AMOUNT - deductions)
+        taxable_amount = max(0, total_assets - _self.constants.EXEMPT_AMOUNT - deductions)
         tax_due = 0.0
         previous_bracket = 0
-        for bracket, rate in self.constants.TAX_BRACKETS:
+        for bracket, rate in _self.constants.TAX_BRACKETS:
             if taxable_amount > previous_bracket:
                 taxable_at_rate = min(taxable_amount, bracket) - previous_bracket
                 tax_due += taxable_at_rate * rate
