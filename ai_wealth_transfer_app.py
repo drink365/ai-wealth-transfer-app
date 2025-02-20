@@ -1,3 +1,4 @@
+
 import streamlit as st
 import pandas as pd
 import math
@@ -6,6 +7,7 @@ from typing import Tuple, Dict, Any, List
 from datetime import datetime
 import time
 from dataclasses import dataclass, field
+
 
 # ===============================
 # 1. 常數與設定
@@ -27,6 +29,7 @@ class TaxConstants:
             (float('inf'), 0.2)
         ]
     )
+
 
 # ===============================
 # 2. 稅務計算邏輯
@@ -67,6 +70,7 @@ class EstateTaxCalculator:
                 tax_due += taxable_at_rate * rate
                 previous_bracket = bracket
         return taxable_amount, round(tax_due, 0), deductions
+
 
 # ===============================
 # 3. 模擬試算邏輯
@@ -145,6 +149,7 @@ class EstateTaxSimulator:
             }
         }
 
+
 # ===============================
 # 4. 登入驗證（保護區用）
 # ===============================
@@ -169,6 +174,7 @@ def check_credentials(input_username: str, input_password: str) -> (bool, str):
         st.error("查無此使用者")
         return False, ""
 
+
 # ===============================
 # 5. Streamlit 介面
 # ===============================
@@ -182,89 +188,36 @@ class EstateTaxUI:
     def render_ui(self):
         """渲染 Streamlit 介面"""
         st.set_page_config(page_title="AI秒算遺產稅", layout="wide")
-        # 注入 CSS：設定整體背景、按鈕、標題、輸入框、表格等元素的樣式
+        # 注入 CSS：針對內容文字加大1號，標題則還原預設並對主標題做特殊設定（2em 且置中）
         st.markdown(
             """
             <style>
-            /* 全站背景與文字色彩設定 */
-            body {
-                background: linear-gradient(135deg, #fdfbfb, #ebedee);
-                color: #333333;
+            /* 將段落、標籤、輸入框等內容文字放大 1.125 倍 */
+            body p, body span, body label, body input, body textarea, body select, body button, body li, body a {
+                font-size: 1.125em !important;
             }
-            /* 文字輸入與按鈕樣式 */
-            input, textarea, select, button {
-                border: 1px solid #cccccc;
-                border-radius: 4px;
-                padding: 0.5rem;
+            /* 標題（h1～h6）還原預設大小 */
+            h1, h2, h3, h4, h5, h6 {
+                font-size: revert !important;
             }
-            button:hover {
-                background-color: #0056b3;
-                color: #ffffff;
-            }
-            /* 主標題樣式：鮮明藍底白字，圓角與陰影 */
+            /* 主標題特殊樣式：2em 且置中 */
             h1.main-header {
                 font-size: 2em !important;
                 text-align: center;
-                background: #007acc;
-                color: #ffffff;
-                padding: 0.5em;
-                border-radius: 8px;
-                box-shadow: 0 4px 8px rgba(0,0,0,0.1);
             }
-            /* 卡片容器樣式 */
-            .stContainer {
-                background-color: rgba(255, 255, 255, 0.9);
-                padding: 1rem;
-                border-radius: 8px;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            }
-            /* 表格樣式 */
-            table {
-                border-collapse: collapse;
-                width: 100%;
-            }
-            table th, table td {
-                padding: 0.5rem;
-                text-align: left;
-                border-bottom: 1px solid #dddddd;
-            }
-            /* 分隔線 */
-            hr {
-                border: 0;
-                height: 2px;
-                background: #007acc;
-                margin-top: 1rem;
-                margin-bottom: 1rem;
-            }
-            /* 數字輸入框 focus 狀態 */
-            input:focus, textarea:focus, select:focus {
-                border-color: #007acc;
-                box-shadow: 0 0 5px rgba(0, 122, 204, 0.5);
-            }
-            /* 登入表單樣式 */
-            .login-form {
-                background-color: #f0f8ff;
-                padding: 1rem;
-                border-radius: 8px;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            }
-            .login-form button {
-                background-color: #007acc;
-                color: #ffffff;
-                border: none;
-                border-radius: 4px;
-                padding: 0.5rem 1rem;
-                cursor: pointer;
-            }
-            .login-form button:hover {
-                background-color: #005f99;
+            /* 響應式設計：小螢幕下可進一步調整（此處示範縮減邊距） */
+            @media only screen and (max-width: 768px) {
+                .css-18e3th9 {
+                    padding-left: 1rem;
+                    padding-right: 1rem;
+                }
             }
             </style>
             """,
             unsafe_allow_html=True
         )
 
-        # 主標題文字
+        # 主標題文字改為 "AI秒算遺產稅"
         st.markdown("<h1 class='main-header'>AI秒算遺產稅</h1>", unsafe_allow_html=True)
         st.selectbox("選擇適用地區", ["台灣（2025年起）"], index=0)
 
@@ -343,7 +296,7 @@ class EstateTaxUI:
 
         if not st.session_state.get("authenticated", False):
             with login_container.form("login_form"):
-                st.markdown("<div class='login-form'>請先登入以檢視此區域內容。</div>", unsafe_allow_html=True)
+                st.markdown("請先登入以檢視此區域內容。")
                 login_username = st.text_input("帳號", key="login_form_username")
                 login_password = st.text_input("密碼", type="password", key="login_form_password")
                 submitted = st.form_submit_button("登入")
@@ -370,7 +323,7 @@ class EstateTaxUI:
             CASE_DISABLED = disabled_people_input
             CASE_OTHER = other_dependents_input
 
-            # 保費預設：直接等於預估遺產稅，向上取整到十萬位，若超過總資產則取總資產
+            # 保費預設：直接等於預估遺產稅，向上取整到十萬位（例如321萬變為330萬），若超過總資產則取總資產
             default_premium = int(math.ceil(tax_due / 10) * 10)
             if default_premium > CASE_TOTAL_ASSETS:
                 default_premium = CASE_TOTAL_ASSETS
@@ -503,15 +456,12 @@ class EstateTaxUI:
             st.table(df_case_results)
 
             df_viz_case = df_case_results.copy()
-            # 設定自訂色彩序列
             fig_bar_case = px.bar(
                 df_viz_case,
                 x="規劃策略",
                 y="家人總共取得（萬）",
                 title="不同規劃策略下家人總共取得金額比較（案例）",
-                text="家人總共取得（萬）",
-                color="規劃策略",
-                color_discrete_sequence=["#ff7f0e", "#2ca02c", "#1f77b4", "#d62728", "#9467bd"]
+                text="家人總共取得（萬）"
             )
             fig_bar_case.update_traces(texttemplate='%{text:.0f}', textposition='outside')
             baseline_case = df_viz_case.loc[df_viz_case["規劃策略"] == "沒有規劃", "家人總共取得（萬）"].iloc[0]
@@ -539,6 +489,7 @@ class EstateTaxUI:
         st.markdown("## 想了解更多？")
         st.markdown("歡迎前往 **永傳家族辦公室**，我們提供專業的家族傳承與財富規劃服務。")
         st.markdown("[點此前往官網](https://www.gracefo.com)", unsafe_allow_html=True)
+
 
 # ===============================
 # 6. 主程式
