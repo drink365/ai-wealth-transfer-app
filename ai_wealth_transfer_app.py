@@ -187,22 +187,49 @@ class EstateTaxUI:
     def render_ui(self):
         """渲染 Streamlit 介面"""
         st.set_page_config(page_title="AI秒算遺產稅", layout="wide")
-        # 注入 CSS：針對內容文字加大1號，標題則還原預設並對主標題做特殊設定（2em 且置中）
+        # 注入 CSS：美化背景、標題、按鈕與其他元素
         st.markdown(
             """
             <style>
-            /* 將段落、標籤、輸入框等內容文字放大 1.125 倍 */
+            /* 整體背景與文字顏色設定 */
+            body {
+                background-color: #f9f9f9;
+            }
             body p, body span, body label, body input, body textarea, body select, body button, body li, body a {
                 font-size: 1.125em !important;
+                color: #333333;
             }
-            /* 標題（h1～h6）還原預設大小 */
-            h1, h2, h3, h4, h5, h6 {
-                font-size: revert !important;
-            }
-            /* 主標題特殊樣式：2em 且置中 */
+            /* 主標題：置中、背景色、圓角、內邊距 */
             h1.main-header {
                 font-size: 2em !important;
                 text-align: center;
+                color: #ffffff;
+                background-color: #4a90e2;
+                padding: 10px;
+                border-radius: 5px;
+            }
+            /* 標題（h2, h3...）可適度加入色彩 */
+            h2, h3 {
+                color: #4a90e2;
+            }
+            /* 分隔線樣式 */
+            hr {
+                border: 0;
+                height: 1px;
+                background: #cccccc;
+            }
+            /* 自訂按鈕樣式（若有用到按鈕可參考） */
+            button {
+                background-color: #4a90e2;
+                color: #ffffff;
+                border: none;
+                padding: 10px;
+                border-radius: 5px;
+            }
+            /* Table 樣式微調 */
+            .css-1d391kg table {
+                background-color: #ffffff;
+                border: 1px solid #dddddd;
             }
             </style>
             """,
