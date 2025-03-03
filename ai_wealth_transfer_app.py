@@ -187,7 +187,7 @@ class EstateTaxUI:
     def render_ui(self):
         """渲染 Streamlit 介面"""
         st.set_page_config(page_title="AI秒算遺產稅", layout="wide")
-        # 直接設定字型大小（一般文字: 1.5em，主標題: 2.7em），
+        # 設定字型大小（一般文字: 1.5em，主標題: 2.7em）
         st.markdown(
             """
             <style>
@@ -484,7 +484,7 @@ class EstateTaxUI:
             dtick = max_value / 10
             # 調整圖表內所有文字大小，並增加上邊距以顯示最上方數字
             fig_bar_case.update_layout(
-                margin=dict(t=150, b=50, l=50, r=50),
+                margin=dict(t=250, b=50, l=50, r=50),
                 yaxis_range=[0, max_value + dtick],
                 autosize=True,
                 font=dict(size=20),
