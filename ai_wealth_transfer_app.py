@@ -187,7 +187,7 @@ class EstateTaxUI:
     def render_ui(self):
         """渲染 Streamlit 介面"""
         st.set_page_config(page_title="AI秒算遺產稅", layout="wide")
-        # 直接設定字型大小（一般文字: 1.5em，主標題: 2.7em）
+        # 直接設定字型大小（一般文字: 1.5em，主標題: 2.7em），並針對 select 與 option 加入樣式
         st.markdown(
             """
             <style>
@@ -200,6 +200,10 @@ class EstateTaxUI:
                 font-size: 2.7em !important;
                 text-align: center;
                 color: #000000 !important;
+            }
+            /* 針對下拉選單的文字大小 */
+            select, option {
+                font-size: 1.5em !important;
             }
             /* 其他標題顏色設定 */
             h2 {
@@ -477,12 +481,17 @@ class EstateTaxUI:
                         y=row["家人總共取得（萬）"],
                         text=diff_text,
                         showarrow=False,
-                        font=dict(color="yellow", size=14),
+                        font=dict(color="yellow", size=16),
                         yshift=-50
                     )
             max_value = df_viz_case["家人總共取得（萬）"].max()
             dtick = max_value / 10
-            fig_bar_case.update_layout(margin=dict(t=100), yaxis_range=[0, max_value + dtick], autosize=True)
+            fig_bar_case.update_layout(
+                margin=dict(t=100),
+                yaxis_range=[0, max_value + dtick],
+                autosize=True,
+                font=dict(size=16)  # 調整圖表整體字型大小
+            )
             st.plotly_chart(fig_bar_case, use_container_width=True)
 
         # ===============================
