@@ -347,16 +347,13 @@ class EstateTaxUI:
             CASE_DISABLED = disabled_people_input
             CASE_OTHER = other_dependents_input
 
-            # 保費預設：直接等於預估遺產稅，向上取整到十萬位（例如321萬變為330萬），若超過總資產則取總資產
             default_premium = int(math.ceil(tax_due / 10) * 10)
             if default_premium > CASE_TOTAL_ASSETS:
                 default_premium = CASE_TOTAL_ASSETS
             premium_val = default_premium
 
-            # 理賠金預設：保費的 1.5 倍
             default_claim = int(premium_val * 1.5)
 
-            # 贈與金額預設：若剩餘資產 (總資產 - 保費) 大於等於 244 萬，則預設為 244 萬；否則為 0
             remaining = CASE_TOTAL_ASSETS - premium_val
             if remaining >= 244:
                 default_gift = 244
@@ -397,56 +394,36 @@ class EstateTaxUI:
                 st.error("錯誤：提前贈與金額不得高於【總資產】-【保費】！")
 
             _, tax_case_no_plan, _ = self.calculator.calculate_estate_tax(
-                CASE_TOTAL_ASSETS,
-                CASE_SPOUSE,
-                CASE_ADULT_CHILDREN,
-                CASE_OTHER,
-                CASE_DISABLED,
-                CASE_PARENTS
+                CASE_TOTAL_ASSETS, CASE_SPOUSE, CASE_ADULT_CHILDREN,
+                CASE_OTHER, CASE_DISABLED, CASE_PARENTS
             )
             net_case_no_plan = CASE_TOTAL_ASSETS - tax_case_no_plan
 
             effective_case_gift = CASE_TOTAL_ASSETS - gift_case
             _, tax_case_gift, _ = self.calculator.calculate_estate_tax(
-                effective_case_gift,
-                CASE_SPOUSE,
-                CASE_ADULT_CHILDREN,
-                CASE_OTHER,
-                CASE_DISABLED,
-                CASE_PARENTS
+                effective_case_gift, CASE_SPOUSE, CASE_ADULT_CHILDREN,
+                CASE_OTHER, CASE_DISABLED, CASE_PARENTS
             )
             net_case_gift = effective_case_gift - tax_case_gift + gift_case
 
             effective_case_insurance = CASE_TOTAL_ASSETS - premium_case
             _, tax_case_insurance, _ = self.calculator.calculate_estate_tax(
-                effective_case_insurance,
-                CASE_SPOUSE,
-                CASE_ADULT_CHILDREN,
-                CASE_OTHER,
-                CASE_DISABLED,
-                CASE_PARENTS
+                effective_case_insurance, CASE_SPOUSE, CASE_ADULT_CHILDREN,
+                CASE_OTHER, CASE_DISABLED, CASE_PARENTS
             )
             net_case_insurance = effective_case_insurance - tax_case_insurance + claim_case
 
             effective_case_combo_not_tax = CASE_TOTAL_ASSETS - gift_case - premium_case
             _, tax_case_combo_not_tax, _ = self.calculator.calculate_estate_tax(
-                effective_case_combo_not_tax,
-                CASE_SPOUSE,
-                CASE_ADULT_CHILDREN,
-                CASE_OTHER,
-                CASE_DISABLED,
-                CASE_PARENTS
+                effective_case_combo_not_tax, CASE_SPOUSE, CASE_ADULT_CHILDREN,
+                CASE_OTHER, CASE_DISABLED, CASE_PARENTS
             )
             net_case_combo_not_tax = effective_case_combo_not_tax - tax_case_combo_not_tax + claim_case + gift_case
 
             effective_case_combo_tax = CASE_TOTAL_ASSETS - gift_case - premium_case + claim_case
             _, tax_case_combo_tax, _ = self.calculator.calculate_estate_tax(
-                effective_case_combo_tax,
-                CASE_SPOUSE,
-                CASE_ADULT_CHILDREN,
-                CASE_OTHER,
-                CASE_DISABLED,
-                CASE_PARENTS
+                effective_case_combo_tax, CASE_SPOUSE, CASE_ADULT_CHILDREN,
+                CASE_OTHER, CASE_DISABLED, CASE_PARENTS
             )
             net_case_combo_tax = effective_case_combo_tax - tax_case_combo_tax + gift_case
 
@@ -513,11 +490,11 @@ class EstateTaxUI:
                     )
             max_value = df_viz_case["家人總共取得（萬）"].max()
             dtick = max_value / 10
-            # 調整圖表內所有文字大小，並將 y 軸上限增加 4 個刻度單位，確保上方數字完整顯示
             fig_bar_case.update_layout(
-                margin=dict(t=350, b=50, l=50, r=50),
+                margin=dict(t=350, b=150, l=50, r=50),
                 yaxis_range=[0, max_value + dtick * 4],
                 autosize=True,
+                height=600,
                 font=dict(size=20),
                 title_font=dict(size=24),
                 xaxis=dict(tickfont=dict(size=20)),
