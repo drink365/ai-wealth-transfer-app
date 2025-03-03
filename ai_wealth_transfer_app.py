@@ -225,7 +225,7 @@ class EstateTaxUI:
             unsafe_allow_html=True
         )
 
-        # 主標題
+        # 主標題與下拉選單（選單保留預設字型）
         st.markdown("<h1 class='main-header'>AI秒算遺產稅</h1>", unsafe_allow_html=True)
         st.selectbox("選擇適用地區", ["台灣（2025年起）"], index=0)
 
@@ -486,7 +486,8 @@ class EstateTaxUI:
                         text=diff_text,
                         showarrow=False,
                         font=dict(color="yellow", size=20),
-                        yshift=-50
+                        yshift=-50,
+                        cliponaxis=False  # 讓標籤超出範圍也能顯示
                     )
             max_value = df_viz_case["家人總共取得（萬）"].max()
             dtick = max_value / 10
@@ -496,7 +497,7 @@ class EstateTaxUI:
                 autosize=True,
                 height=600,
                 font=dict(size=20),
-                title_font=dict(size=24),
+                title_font=dict(size=24, pad=dict(t=20)),  # 調整標題內邊距，縮小與圖表間的空白
                 xaxis=dict(tickfont=dict(size=20)),
                 yaxis=dict(tickfont=dict(size=20))
             )
