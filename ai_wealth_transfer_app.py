@@ -513,10 +513,10 @@ class EstateTaxUI:
                     )
             max_value = df_viz_case["家人總共取得（萬）"].max()
             dtick = max_value / 10
-            # 將上方刻度額外增加一個單位
+            # 調整圖表內所有文字大小，並將 y 軸上限增加 4 個刻度單位，確保上方數字完整顯示
             fig_bar_case.update_layout(
-                margin=dict(t=250, b=50, l=50, r=50),
-                yaxis_range=[0, max_value + dtick * 2],
+                margin=dict(t=350, b=50, l=50, r=50),
+                yaxis_range=[0, max_value + dtick * 4],
                 autosize=True,
                 font=dict(size=20),
                 title_font=dict(size=24),
