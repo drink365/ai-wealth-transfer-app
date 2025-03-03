@@ -476,7 +476,7 @@ class EstateTaxUI:
             baseline_case = df_viz_case.loc[
                 df_viz_case["規劃策略"] == "沒有規劃", "家人總共取得（萬）"
             ].iloc[0]
-            # 將「規劃效益」標籤顯示在 bar 的垂直中間
+            # 將 "規劃效益" 標籤顯示在每個 bar 的垂直中間
             for idx, row in df_viz_case.iterrows():
                 if row["規劃策略"] != "沒有規劃":
                     diff = row["家人總共取得（萬）"] - baseline_case
@@ -491,8 +491,8 @@ class EstateTaxUI:
             max_value = df_viz_case["家人總共取得（萬）"].max()
             dtick = max_value / 10
             fig_bar_case.update_layout(
-                margin=dict(t=350, b=150, l=50, r=50),
-                yaxis_range=[0, max_value + dtick * 4],
+                margin=dict(t=150, b=150, l=50, r=50),
+                yaxis_range=[0, max_value + dtick * 5],
                 autosize=True,
                 height=600,
                 font=dict(size=20),
