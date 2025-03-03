@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pandas as pd
 import math
@@ -188,24 +187,24 @@ class EstateTaxUI:
     def render_ui(self):
         """渲染 Streamlit 介面"""
         st.set_page_config(page_title="AI秒算遺產稅", layout="wide")
-        # 注入 CSS：針對內容文字加大1號，標題則還原預設並對主標題做特殊設定（2em 且置中）
+        # 修改 CSS：放大一般文字與主標題
         st.markdown(
             """
             <style>
-            /* 將段落、標籤、輸入框等內容文字放大 1.125 倍 */
+            /* 放大一般文字，例如從 1.125em 調整為 1.5em */
             body p, body span, body label, body input, body textarea, body select, body button, body li, body a {
-                font-size: 1.125em !important;
+                font-size: 1.5em !important;
             }
-            /* 標題（h1～h6）還原預設大小 */
+            /* 標題（h1～h6）恢復預設大小 */
             h1, h2, h3, h4, h5, h6 {
                 font-size: revert !important;
             }
-            /* 主標題特殊樣式：2em 且置中 */
+            /* 主標題特殊樣式：調整為 3em 並置中 */
             h1.main-header {
-                font-size: 2em !important;
+                font-size: 3em !important;
                 text-align: center;
             }
-            /* 響應式設計：小螢幕下可進一步調整（此處示範縮減邊距） */
+            /* 響應式設計：小螢幕下調整邊距 */
             @media only screen and (max-width: 768px) {
                 .css-18e3th9 {
                     padding-left: 1rem;
