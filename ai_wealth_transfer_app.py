@@ -225,7 +225,7 @@ class EstateTaxUI:
             unsafe_allow_html=True
         )
 
-        # 主標題與下拉選單（下拉選單維持原預設字型）
+        # 主標題與下拉選單（下拉選單維持預設字型）
         st.markdown("<h1 class='main-header'>AI秒算遺產稅</h1>", unsafe_allow_html=True)
         st.selectbox("選擇適用地區", ["台灣（2025年起）"], index=0)
 
@@ -496,7 +496,7 @@ class EstateTaxUI:
                 autosize=True,
                 height=600,
                 font=dict(size=20),
-                title_font=dict(size=24, pad=dict(t=20)),
+                title_font=dict(size=24),
                 xaxis=dict(tickfont=dict(size=20)),
                 yaxis=dict(tickfont=dict(size=20))
             )
